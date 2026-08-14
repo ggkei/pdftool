@@ -19,8 +19,6 @@ function getPool(): Pool {
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
       ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
-      // Disable prepared statements for Supabase connection pooler compatibility
-      prepare: false,
     });
   }
   return pool;
