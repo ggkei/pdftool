@@ -5,6 +5,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const cfg = await getPublicConfig();
-  return NextResponse.json(cfg);
+  try {
+    const cfg = await getPublicConfig();
+    return NextResponse.json(cfg);
+  } catch (e: any) {
+    return NextResponse.json({
+      ok: false,
+      error: e.message,
+      stack: process.env.NODE_ENV === "development" ? e.stack : undefined,
+    }, { status: 500 });
+  }
 }
