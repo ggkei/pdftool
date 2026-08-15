@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useUser } from "./UserContext";
@@ -9,7 +9,7 @@ interface Props {
   verifyMb: number;
   membershipMb: number;
   onClose: () => void;
-  onVerified: (kind: "verify" | "membership") => void;
+  onVerified: (kind: "verify" | "membership", expiry?: number) => void;
 }
 
 export function FileGuardModal({ mode, fileSizeMB, verifyMb, membershipMb, onClose, onVerified }: Props) {
@@ -34,7 +34,10 @@ export function FileGuardModal({ mode, fileSizeMB, verifyMb, membershipMb, onClo
       const data = await r.json();
 
       if (mode === "membership") {
-        if (data.ok && data.bound) {
+        if (data.ok && data.tempExpiry) {
+          onVerified("membership", data.tempExpiry);
+          setValue("");
+        } else if (data.ok && data.bound) {
           await refresh();
           onVerified("membership");
           setValue("");
@@ -136,7 +139,7 @@ export function FileGuardModal({ mode, fileSizeMB, verifyMb, membershipMb, onClo
                 autoFocus
               />
               <p className="mt-2 text-[11px] leading-relaxed text-zinc-400">
-                请通过官方小程序获取验证码，输入下方即可解锁（有效期 30 分钟）
+                请通过官方小程序获取验证码，输入下方即可解锁（有效期 15 分钟）
               </p>
             </>
           ) : (

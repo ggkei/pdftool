@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { validateMembershipToken, bindMembershipToUser, validateMembershipForUser } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -23,6 +23,13 @@ export async function POST(req: NextRequest) {
   try { body = await req.json(); } catch { return NextResponse.json({ ok: false }, { status: 400 }); }
   const token = String(body?.token || "").trim();
   if (!token) return NextResponse.json({ ok: false, reason: "请输入会员码" }, { status: 400 });
+
+  // Handle temp 24h membership codes (anonymous, no login required)
+  if (token.startsWith("TEMP24-")) {
+    const result = await validateMembershipToken(token);
+    if (!result.ok) return NextResponse.json({ ok: false, reason: result.reason || "会员码无效或已过期" }, { status: 400 });
+    return NextResponse.json({ ok: true, tier: "temp24", bound: false, tempExpiry: result.expiresAt });
+  }
 
   const user = await getCurrentUser();
   if (user) {

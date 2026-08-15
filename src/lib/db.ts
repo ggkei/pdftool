@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+﻿import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 import { TOOLS, TOOL_IDS, DEFAULT_TOOL_THRESHOLDS, MEMBERSHIP_TIERS, PDF_TOOLS, UTIL_TOOLS, type ToolDef, type MembershipTier } from "./tools";
 
@@ -78,14 +78,24 @@ async function initDb() {
         created_at BIGINT NOT NULL,
         expires_at BIGINT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS verification_records (
+        id SERIAL PRIMARY KEY,
+        identifier TEXT NOT NULL,
+        identifier_type TEXT NOT NULL,
+        ad_success BOOLEAN NOT NULL DEFAULT false,
+        ad_unit_id TEXT,
+        code TEXT,
+        created_at BIGINT NOT NULL
+      );
       CREATE INDEX IF NOT EXISTS idx_login_codes_email ON login_codes(email);
+      CREATE INDEX IF NOT EXISTS idx_verification_records_identifier ON verification_records(identifier);
       CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
     `);
     const now = Date.now();
     const defaults: Record<string, string> = {
       "verify.enabled": "true",
       "verify.mb": "8",
-      "verify.minutes": "30",
+      "verify.minutes": "15",
       "membership.enabled": "true",
       "membership.mb": "20",
       "admin.password": "pdftool@admin2026",
@@ -193,6 +203,17 @@ export async function verifyCode(code: string): Promise<{ ok: boolean; reason?: 
   return { ok: true };
 }
 
+export async function createVerificationCode(minutes = 15): Promise<string> {
+  await ensureInit();
+  const code = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const now = Date.now();
+  await getPool().query(
+    "INSERT INTO verification_codes (code, used, created_at, expires_at) VALUES ($1, false, $2, $3)",
+    [code, now, now + minutes * 60 * 1000]
+  );
+  return code;
+}
+
 export async function generateCodes(count: number, minutes: number): Promise<string[]> {
   await ensureInit();
   const now = Date.now();
@@ -229,14 +250,25 @@ export async function createMembershipToken(tier: MembershipTier): Promise<strin
   return token;
 }
 
-export async function validateMembershipToken(token: string): Promise<{ ok: boolean; tier?: MembershipTier; reason?: string }> {
+export async function createTempMembershipToken(durationHours = 24): Promise<string> {
+  await ensureInit();
+  const token = "TEMP24-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+  const now = Date.now();
+  await getPool().query(
+    "INSERT INTO membership_tokens (token, tier, active, created_at, expires_at) VALUES ($1, 'temp24', true, $2, $3)",
+    [token, now, now + durationHours * 3600_000]
+  );
+  return token;
+}
+
+export async function validateMembershipToken(token: string): Promise<{ ok: boolean; tier?: MembershipTier; expiresAt?: number; reason?: string }> {
   await ensureInit();
   const res = await getPool().query("SELECT * FROM membership_tokens WHERE token = $1", [token]);
   if (res.rows.length === 0) return { ok: false, reason: "会员码不存在" };
   const row = res.rows[0];
   if (!row.active) return { ok: false, reason: "会员码已停用" };
   if (row.expires_at !== 0 && row.expires_at < Date.now()) return { ok: false, reason: "会员已过期" };
-  return { ok: true, tier: row.tier as MembershipTier };
+  return { ok: true, tier: row.tier as MembershipTier, expiresAt: row.expires_at };
 }
 
 export async function listMembershipTokens(limit = 50): Promise<any[]> {
@@ -442,4 +474,34 @@ export async function hasPassword(userId: number): Promise<boolean> {
   await ensureInit();
   const res = await getPool().query("SELECT password FROM users WHERE id = $1", [userId]);
   return !!res.rows[0]?.password;
+}
+
+export async function recordAdSuccessAndGrant(
+  identifier: string,
+  identifierType: string,
+  adUnitId?: string
+): Promise<{ code: string; membershipCode?: string; rewardGranted: boolean; adCount: number }> {
+  await ensureInit();
+  const now = Date.now();
+
+  const code = await createVerificationCode(15);
+
+  await getPool().query(
+    "INSERT INTO verification_records (identifier, identifier_type, ad_success, ad_unit_id, code, created_at) VALUES (, , true, , , )",
+    [identifier, identifierType, adUnitId || null, code, now]
+  );
+
+  const twelveHoursAgo = now - 12 * 3600_000;
+  const countRes = await getPool().query(
+    "SELECT COUNT(*) as cnt FROM verification_records WHERE identifier =  AND ad_success = true AND created_at >= ",
+    [identifier, twelveHoursAgo]
+  );
+  const adCount = parseInt(countRes.rows[0].cnt, 10);
+
+  if (adCount === 3) {
+    const membershipCode = await createTempMembershipToken(24);
+    return { code, membershipCode, rewardGranted: true, adCount };
+  }
+
+  return { code, rewardGranted: false, adCount };
 }

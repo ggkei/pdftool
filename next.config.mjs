@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+﻿/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
@@ -10,6 +10,19 @@ const nextConfig = {
       pako: false,
     };
     return config;
+  },
+  async rewrites() {
+    if (process.env.NODE_ENV === 'development' && process.env.PROXY_API === 'true') {
+      return {
+        beforeFiles: [
+          {
+            source: '/api/:path*',
+            destination: 'https://atoolx.com/api/:path*',
+          },
+        ],
+      };
+    }
+    return {};
   },
 };
 
