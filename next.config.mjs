@@ -15,10 +15,10 @@ const nextConfig = {
     if (process.env.NODE_ENV === 'development' && process.env.PROXY_API === 'true') {
       return {
         beforeFiles: [
-          {
-            source: '/api/:path*',
-            destination: 'https://atoolx.com/api/:path*',
-          },
+          { source: '/api/config', destination: 'https://atoolx.com/api/config' },
+          { source: '/api/debug', destination: 'https://atoolx.com/api/debug' },
+          { source: '/api/auth/:path*', destination: 'https://atoolx.com/api/auth/:path*' },
+          { source: '/api/admin', destination: 'https://atoolx.com/api/admin' },
         ],
       };
     }

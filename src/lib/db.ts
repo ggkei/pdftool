@@ -405,6 +405,26 @@ export async function deleteSession(token: string) {
   await getPool().query("DELETE FROM sessions WHERE token = $1", [token]);
 }
 
+export const MAX_SESSIONS = 3;
+
+export async function enforceSessionLimit(userId: number, maxSessions: number = MAX_SESSIONS) {
+  await ensureInit();
+  const now = Date.now();
+  // Delete expired sessions first
+  await getPool().query("DELETE FROM sessions WHERE user_id = $1 AND expires_at < $2", [userId, now]);
+  // Count remaining active sessions
+  const countRes = await getPool().query("SELECT COUNT(*) as cnt FROM sessions WHERE user_id = $1", [userId]);
+  const count = parseInt(countRes.rows[0].cnt, 10);
+  // If at or over limit, delete oldest sessions to make room for the new one
+  if (count >= maxSessions) {
+    const toDelete = count - maxSessions + 1;
+    await getPool().query(
+      "DELETE FROM sessions WHERE token IN (SELECT token FROM sessions WHERE user_id = $1 ORDER BY created_at ASC LIMIT $2)",
+      [userId, toDelete]
+    );
+  }
+}
+
 export async function bindMembershipToUser(userId: number, token: string): Promise<{ ok: boolean; tier?: MembershipTier; reason?: string }> {
   await ensureInit();
   const client = await getPool().connect();
@@ -431,7 +451,7 @@ export async function bindMembershipToUser(userId: number, token: string): Promi
     let finalExpires: number; let finalTier: string;
     if (!hasExistingMembership) { finalExpires = newExpires; finalTier = row.tier; }
     else if (existingIsForever) { finalExpires = 0; finalTier = currentTier || row.tier; }
-    else if ((currentExpires as number) > now) { finalExpires = isForever ? 0 : Math.max(currentExpires as number, newExpires); finalTier = row.tier; }
+    else if ((currentExpires as number) > now) { finalExpires = isForever ? 0 : (currentExpires as number) + tierDef.days * 86_400_000; finalTier = row.tier; }
     else { finalExpires = newExpires; finalTier = row.tier; }
     await client.query("UPDATE users SET membership_tier = $1, membership_expires_at = $2 WHERE id = $3", [finalTier, finalExpires, userId]);
     await client.query("COMMIT");
@@ -499,7 +519,7 @@ export async function recordAdSuccessAndGrant(
   const adCount = parseInt(countRes.rows[0].cnt, 10);
 
   if (adCount === 3) {
-    const membershipCode = await createTempMembershipToken(24);
+    const membershipCode = await createMembershipToken("day");
     return { code, membershipCode, rewardGranted: true, adCount };
   }
 

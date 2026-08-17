@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useUser } from "./UserContext";
+import { PaymentModal } from "./PaymentModal";
 
 interface Props {
   mode: "verify" | "membership";
@@ -13,47 +14,47 @@ interface Props {
 }
 
 export function FileGuardModal({ mode, fileSizeMB, verifyMb, membershipMb, onClose, onVerified }: Props) {
-  const { user, refresh, openLogin } = useUser();
+  const { refresh, openLogin, bindMembership } = useUser();
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [showPayment, setShowPayment] = useState(false);
 
   const submit = async () => {
     setErr("");
-    if (!value.trim()) { setErr("请输入内容"); return; }
+    if (!value.trim()) { setErr("请输入激活码"); return; }
     setLoading(true);
     try {
-      const endpoint = mode === "verify" ? "/api/verify-code" : "/api/verify-membership";
-      const body = mode === "verify" ? { code: value } : { token: value };
-      const r = await fetch(endpoint, {
+      const r = await fetch("/api/activate-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ code: value.trim() }),
         credentials: "include",
       });
       const data = await r.json();
 
-      if (mode === "membership") {
-        if (data.ok && data.tempExpiry) {
-          onVerified("membership", data.tempExpiry);
+      if (data.ok && data.type === "verify") {
+        if (mode === "membership") {
+          setErr("此文件较大，需要会员激活码");
+        } else {
+          onVerified("verify");
           setValue("");
-        } else if (data.ok && data.bound) {
+        }
+      } else if (data.ok && data.type === "membership") {
+        if (data.bound) {
           await refresh();
-          onVerified("membership");
-          setValue("");
-        } else if (data.ok && data.needLogin) {
-          openLogin(value);
+          const expiry = parseInt(localStorage.getItem("pdftool.membership_expiry") || "0", 10);
+          onVerified("membership", expiry);
+        } else if (data.needLogin) {
+          openLogin(value.trim());
           onClose();
         } else {
-          setErr(data.reason || "验证失败");
+          const result = await bindMembership(value.trim());
+          onVerified("membership", result.expiresAt);
         }
+        setValue("");
       } else {
-        if (data.ok) {
-          onVerified(mode);
-          setValue("");
-        } else {
-          setErr(data.reason || "验证失败");
-        }
+        setErr(data.reason || "激活码无效");
       }
     } catch (e: any) {
       setErr(e?.message || "网络错误");
@@ -62,152 +63,137 @@ export function FileGuardModal({ mode, fileSizeMB, verifyMb, membershipMb, onClo
     }
   };
 
+  const handleCodeReceived = (code: string) => {
+    setValue(code);
+    setShowPayment(false);
+  };
+
   const thresholdLabel = mode === "verify"
-    ? `超过 ${verifyMb}MB 需输入验证码`
-    : `超过 ${membershipMb}MB 需会员`;
+    ? `超过 ${verifyMb}MB 需输入激活码`
+    : `超过 ${membershipMb}MB 需会员激活码`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-md animate-scale-in overflow-hidden rounded-2xl bg-white shadow-[0_24px_80px_-12px_rgba(15,23,42,0.25)]">
-        <div className="relative px-6 pt-6 pb-4">
-          <div className={`absolute inset-x-0 top-0 h-1 ${mode === "verify" ? "bg-gradient-to-r from-brand-500 to-brand-400" : "bg-gradient-to-r from-amber-500 to-amber-400"}`} />
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${mode === "verify" ? "bg-brand-100 text-brand-600" : "bg-amber-100 text-amber-600"}`}>
-                {mode === "verify" ? (
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm animate-fade-in">
+        <div className="w-full max-w-md animate-scale-in overflow-hidden rounded-2xl bg-white shadow-[0_24px_80px_-12px_rgba(15,23,42,0.25)]">
+          <div className="relative px-6 pt-6 pb-4">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-500 to-brand-400" />
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-600">
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <rect x="3" y="11" width="18" height="11" rx="2" />
                     <path strokeLinecap="round" d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
-                ) : (
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" />
-                  </svg>
-                )}
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-zinc-900">激活码验证</h3>
+                  <p className="text-xs text-zinc-500">
+                    {mode === "verify" ? "解锁临时处理权限" : "解锁大文件处理权限"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base font-semibold text-zinc-900">
-                  {mode === "verify" ? "验证码验证" : "会员验证"}
-                </h3>
-                <p className="text-xs text-zinc-500">
-                  {mode === "verify" ? "解锁临时处理权限" : "解锁大文件处理权限"}
-                </p>
+              <button
+                onClick={onClose}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors"
+                aria-label="关闭"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="px-6 pb-6">
+            <div className="mb-5 flex items-center gap-3 rounded-xl border border-brand-200/70 bg-brand-50/60 p-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
+                  <circle cx="12" cy="12" r="10" />
+                </svg>
+              </div>
+              <div className="text-xs leading-relaxed text-zinc-700">
+                当前文件 <span className="font-bold text-zinc-900">{fileSizeMB.toFixed(1)} MB</span>
+                <span className="mx-1 text-zinc-400">·</span>
+                {thresholdLabel}
               </div>
             </div>
+
+            <label className="mb-2 block text-xs font-medium text-zinc-600">激活码</label>
+            <input
+              value={value}
+              onChange={(e) => { setValue(e.target.value.toUpperCase()); setErr(""); }}
+              maxLength={20}
+              placeholder="输入验证码或会员码"
+              className="input-base text-center text-lg tracking-[0.2em] font-mono uppercase"
+              autoFocus
+              onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+            />
+
+            {err && (
+              <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+                <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
+                  <circle cx="12" cy="12" r="10" />
+                </svg>
+                {err}
+              </div>
+            )}
+
+            <div className="mt-6 flex gap-3">
+              <button onClick={onClose} className="btn-secondary flex-1">
+                取消
+              </button>
+              <button
+                onClick={submit}
+                disabled={loading}
+                className="btn-primary flex-1"
+              >
+                {loading ? (
+                  <>
+                    <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                    验证中...
+                  </>
+                ) : "确认激活"}
+              </button>
+            </div>
+
+            {/* Buy Membership Button */}
             <button
-              onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors"
-              aria-label="关闭"
+              onClick={() => setShowPayment(true)}
+              className="mt-4 w-full rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 py-2.5 text-sm font-semibold text-amber-700 transition-all hover:border-amber-400 hover:from-amber-100 hover:to-orange-100"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              购买会员 · 立即解锁全部功能
             </button>
-          </div>
-        </div>
 
-        <div className="px-6 pb-6">
-          <div className={`mb-5 flex items-center gap-3 rounded-xl border p-3 ${mode === "verify" ? "bg-brand-50/60 border-brand-200/70" : "bg-amber-50/60 border-amber-200/70"}`}>
-            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${mode === "verify" ? "bg-brand-100 text-brand-700" : "bg-amber-100 text-amber-700"}`}>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
-                <circle cx="12" cy="12" r="10" />
-              </svg>
-            </div>
-            <div className="text-xs leading-relaxed text-zinc-700">
-              当前文件 <span className="font-bold text-zinc-900">{fileSizeMB.toFixed(1)} MB</span>
-              <span className="mx-1 text-zinc-400">·</span>
-              {thresholdLabel}
-            </div>
-          </div>
-
-          {mode === "membership" && user?.isMember && (
-            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              你已是 <b>{user.tierInfo?.name || "会员"}</b>（{user.remainingDays === -1 ? "永久" : `剩余 ${user.remainingDays} 天`}），点击下方"取消"即可继续使用。
-            </div>
-          )}
-
-          {mode === "verify" ? (
-            <>
-              <label className="mb-2 block text-xs font-medium text-zinc-600">验证码</label>
-              <input
-                value={value}
-                onChange={(e) => { setValue(e.target.value.toUpperCase()); setErr(""); }}
-                maxLength={12}
-                placeholder="如 A1B2C3"
-                className="input-base text-center text-lg tracking-[0.3em] font-mono uppercase"
-                autoFocus
-              />
-              <p className="mt-2 text-[11px] leading-relaxed text-zinc-400">
-                请通过官方小程序获取验证码，输入下方即可解锁（有效期 15 分钟）
+            {/* Mini Program QR Code Section */}
+            <div className="mt-5 flex flex-col items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50/80 p-4">
+              <p className="text-xs text-zinc-500">没有激活码？微信扫码看广告免费获取</p>
+              <div className="flex h-32 w-32 flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-300 bg-white">
+                <svg className="h-12 w-12 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM18 14h3M14 18h3M18 18v3" />
+                </svg>
+                <span className="mt-1 text-[10px] text-zinc-400">小程序二维码</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-center text-zinc-400">
+                微信扫码 → 看广告 → 获取激活码<br/>
+                验证码 15 分钟有效 · 看 3 次送 1 天会员
               </p>
-            </>
-          ) : (
-            <>
-              {user ? (
-                <>
-                  <label className="mb-2 block text-xs font-medium text-zinc-600">会员码（将绑定到你的账号）</label>
-                  <input
-                    value={value}
-                    onChange={(e) => { setValue(e.target.value); setErr(""); }}
-                    placeholder="如 MB-XXXX-XXXX"
-                    className="input-base font-mono"
-                    autoFocus
-                  />
-                  <p className="mt-2 text-[11px] leading-relaxed text-zinc-400">
-                    会员码将永久绑定到 {user.email}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <label className="mb-2 block text-xs font-medium text-zinc-600">会员码</label>
-                  <input
-                    value={value}
-                    onChange={(e) => { setValue(e.target.value); setErr(""); }}
-                    placeholder="如 MB-XXXX-XXXX"
-                    className="input-base font-mono"
-                    autoFocus
-                  />
-                  <p className="mt-2 text-[11px] leading-relaxed text-zinc-400">
-                    输入后将引导你登录并绑定到账号
-                  </p>
-                </>
-              )}
-            </>
-          )}
-
-          {err && (
-            <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-              <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
-                <circle cx="12" cy="12" r="10" />
-              </svg>
-              {err}
             </div>
-          )}
-
-          <div className="mt-6 flex gap-3">
-            <button onClick={onClose} className="btn-secondary flex-1">
-              取消
-            </button>
-            <button
-              onClick={submit}
-              disabled={loading}
-              className={`flex-1 ${mode === "verify" ? "btn-primary" : "btn"} bg-amber-500 hover:bg-amber-600 shadow-card text-white`}
-            >
-              {loading ? (
-                <>
-                  <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                  </svg>
-                  验证中...
-                </>
-              ) : mode === "membership" && !user ? "登录并绑定" : "确认"}
-            </button>
           </div>
         </div>
       </div>
-    </div>
+
+      {showPayment && (
+        <PaymentModal
+          onClose={() => setShowPayment(false)}
+          onCodeReceived={handleCodeReceived}
+        />
+      )}
+    </>
   );
 }

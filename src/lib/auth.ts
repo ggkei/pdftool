@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
-import { findSession, findUserById, getUser, touchUserLogin, createSession, deleteSession } from "./db";
+import { findSession, findUserById, getUser, touchUserLogin, createSession, deleteSession, enforceSessionLimit } from "./db";
 
 export const SESSION_COOKIE = "pdftool_session";
 export const SESSION_MAX_AGE = 30 * 24 * 60 * 60;
@@ -38,6 +38,7 @@ export async function getCurrentUser() {
 }
 
 export async function loginUser(userId: number) {
+  await enforceSessionLimit(userId);
   const token = generateSessionToken();
   await createSession(userId, token);
   setSessionCookie(token);

@@ -1,0 +1,109 @@
+﻿<view class="container">
+  <!-- Header -->
+  <view class="header">
+    <view class="logo">
+      <text class="logo-text">atoolx</text>
+      <text class="logo-badge">工具箱</text>
+    </view>
+    <view class="subtitle">看广告免费获取验证码，在网站使用在线工具</view>
+  </view>
+
+  <!-- Main Card -->
+  <view class="card main-card">
+    <view class="icon-wrap">
+      <view class="icon-circle">
+        <text class="icon-emoji">🎬</text>
+      </view>
+    </view>
+
+    <view class="action-title">观看广告获取验证码</view>
+    <view class="action-desc">观看一段短视频广告，即可获得 15 分钟有效验证码，在网站免费处理大文件。</view>
+
+    <!-- Progress -->
+    <view class="progress-section">
+      <view class="progress-label">
+        <text>12 小时内广告观看进度</text>
+        <text class="progress-count">{{adCount}}/3</text>
+      </view>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{adCount >= 3 ? 100 : adCount * 33.3}}%"></view>
+      </view>
+      <view class="progress-hint" wx:if="{{adCount < 3}}">
+        再看 {{3 - adCount}} 次广告即可获得 1天会员码
+      </view>
+      <view class="progress-hint done" wx:else>
+        🎉 已获得 1天会员码！
+      </view>
+    </view>
+
+    <!-- Buttons -->
+    <button class="btn-primary watch-btn" bindtap="watchAd" loading="{{adLoading}}" disabled="{{adLoading || requesting}}">
+      {{adLoading ? '广告加载中...' : '看广告获取验证码'}}
+    </button>
+
+    <button class="btn-test" bindtap="testReward" disabled="{{requesting}}">
+      测试模式：直接获取验证码
+    </button>
+  </view>
+
+  <!-- Steps -->
+  <view class="card steps-card">
+    <view class="steps-title">使用步骤</view>
+    <view class="step-item">
+      <view class="step-num">1</view>
+      <view class="step-text">点击上方按钮观看广告</view>
+    </view>
+    <view class="step-item">
+      <view class="step-num">2</view>
+      <view class="step-text">复制获取的验证码</view>
+    </view>
+    <view class="step-item">
+      <view class="step-num">3</view>
+      <view class="step-text">打开网站 atoolx.com 粘贴验证码</view>
+    </view>
+    <view class="step-item">
+      <view class="step-num">4</view>
+      <view class="step-text">免费处理大文件（15 分钟有效）</view>
+    </view>
+  </view>
+
+  <!-- Website Link -->
+  <view class="website-section">
+    <text class="website-label">网站地址</text>
+    <view class="website-link" bindtap="copyWebsite">
+      <text>{{websiteUrl}}</text>
+      <text class="copy-icon">📋</text>
+    </view>
+  </view>
+</view>
+
+<!-- Result Modal -->
+<view class="modal-mask" wx:if="{{showModal}}" bindtap="closeModal">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-close" bindtap="closeModal">✕</view>
+
+    <!-- Verify Code -->
+    <view class="result-section">
+      <view class="result-label">验证码（15 分钟有效）</view>
+      <view class="code-box" bindtap="copyCode">
+        <text class="code-text">{{code}}</text>
+        <text class="copy-btn">复制</text>
+      </view>
+    </view>
+
+    <!-- Membership Code (if granted) -->
+    <view class="result-section membership" wx:if="{{rewardGranted && membershipCode}}">
+      <view class="result-label">🎉 1天会员码</view>
+      <view class="code-box membership-box" bindtap="copyMembershipCode">
+        <text class="code-text">{{membershipCode}}</text>
+        <text class="copy-btn">复制</text>
+      </view>
+      <view class="membership-hint">恭喜！您已观看 3 次广告，获得 1 天会员权限。</view>
+    </view>
+
+    <view class="modal-footer">
+      <button class="btn-secondary" bindtap="copyCode">复制验证码</button>
+      <button class="btn-primary" bindtap="copyWebsite">复制网址去使用</button>
+    </view>
+  </view>
+</view>

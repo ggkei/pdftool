@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -313,6 +313,7 @@ export function LoginModal({ onClose, onSuccess }: Props) {
               注册新账号
             </button>
           </div>
+          <p className="text-center text-[10px] text-zinc-400">同一账号最多同时在 3 台设备登录</p>
         </div>
       </div>
     </div>

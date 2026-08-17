@@ -1,5 +1,6 @@
-﻿import { NextRequest, NextResponse } from "next/server";
-import { validateMembershipToken, bindMembershipToUser, validateMembershipForUser } from "@/lib/db";
+import { NextRequest, NextResponse } from "next/server";
+import { validateMembershipToken, bindMembershipToUser } from "@/lib/db";
+import { validateTokenInMemory } from "@/lib/inMemoryDb";
 import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -9,12 +10,8 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ ok: false, loggedIn: false });
   return NextResponse.json({
-    ok: user.isMember,
-    loggedIn: true,
-    isMember: user.isMember,
-    tierInfo: user.tierInfo,
-    remainingDays: user.remainingDays,
-    email: user.email,
+    ok: user.isMember, loggedIn: true, isMember: user.isMember,
+    tierInfo: user.tierInfo, remainingDays: user.remainingDays, email: user.email,
   });
 }
 
@@ -24,23 +21,34 @@ export async function POST(req: NextRequest) {
   const token = String(body?.token || "").trim();
   if (!token) return NextResponse.json({ ok: false, reason: "请输入会员码" }, { status: 400 });
 
-  // Handle temp 24h membership codes (anonymous, no login required)
-  if (token.startsWith("TEMP24-")) {
-    const result = await validateMembershipToken(token);
-    if (!result.ok) return NextResponse.json({ ok: false, reason: result.reason || "会员码无效或已过期" }, { status: 400 });
-    return NextResponse.json({ ok: true, tier: "temp24", bound: false, tempExpiry: result.expiresAt });
-  }
-
   const user = await getCurrentUser();
   if (user) {
-    const bindResult = await bindMembershipToUser(user.id, token);
-    if (bindResult.ok) {
-      return NextResponse.json({ ok: true, tier: bindResult.tier, bound: true });
+    // Try real database first
+    try {
+      const bindResult = await bindMembershipToUser(user.id, token);
+      if (bindResult.ok) {
+        return NextResponse.json({ ok: true, tier: bindResult.tier, bound: true });
+      }
+      // Database returned error (code not found etc.) - fall through to in-memory
+    } catch {
+      // Database connection failed - fall through to in-memory
     }
-    return NextResponse.json({ ok: false, reason: bindResult.reason || "绑定失败" }, { status: 400 });
+    // In-memory fallback (local testing)
+    const memResult = validateTokenInMemory(token);
+    if (memResult.ok) {
+      return NextResponse.json({ ok: true, tier: memResult.tier, bound: false, mode: "in-memory" });
+    }
+    return NextResponse.json({ ok: false, reason: "会员码无效或已过期" }, { status: 400 });
   }
 
-  const result = await validateMembershipToken(token);
-  if (!result.ok) return NextResponse.json({ ok: false, reason: "会员码无效或已过期" }, { status: 400 });
-  return NextResponse.json({ ok: true, tier: result.tier, bound: false, needLogin: true });
+  // Not logged in - just validate
+  try {
+    const result = await validateMembershipToken(token);
+    if (!result.ok) return NextResponse.json({ ok: false, reason: "会员码无效或已过期" }, { status: 400 });
+    return NextResponse.json({ ok: true, tier: result.tier, bound: false, needLogin: true });
+  } catch {
+    const result = validateTokenInMemory(token);
+    if (!result.ok) return NextResponse.json({ ok: false, reason: "会员码无效或已过期" }, { status: 400 });
+    return NextResponse.json({ ok: true, tier: result.tier, bound: false, needLogin: true, mode: "in-memory" });
+  }
 }

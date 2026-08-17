@@ -1,4 +1,4 @@
-export interface ToolDef {
+﻿export interface ToolDef {
   id: string;
   name: string;
   desc: string;
@@ -11,7 +11,7 @@ export interface ToolDef {
   tips?: string[];
 }
 
-export type MembershipTier = "month" | "half_year" | "year" | "three_year" | "forever";
+export type MembershipTier = "day" | "month" | "half_year" | "year" | "three_year" | "forever";
 
 export const MEMBERSHIP_TIERS: {
   id: MembershipTier;
@@ -20,6 +20,7 @@ export const MEMBERSHIP_TIERS: {
   badge: string;
   color: string;
 }[] = [
+  { id: "day", name: "日卡", days: 1, badge: "日", color: "bg-green-100 text-green-700" },
   { id: "month", name: "月卡", days: 30, badge: "月", color: "bg-blue-100 text-blue-700" },
   { id: "half_year", name: "半年卡", days: 180, badge: "半年", color: "bg-cyan-100 text-cyan-700" },
   { id: "year", name: "年卡", days: 365, badge: "年", color: "bg-violet-100 text-violet-700" },

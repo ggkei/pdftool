@@ -1,11 +1,13 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useUser } from "@/components/UserContext";
 
 function formatDate(ts?: number | null) {
-  if (!ts) return "-";
-  return new Date(ts).toLocaleString("zh-CN", {
+  if (!ts || isNaN(ts) || ts <= 0) return "-";
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return "-";
+  return d.toLocaleString("zh-CN", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -21,6 +23,7 @@ function tierBadgeClass(tier?: string | null) {
     case "year": return "bg-violet-100 text-violet-700";
     case "half_year": return "bg-cyan-100 text-cyan-700";
     case "month": return "bg-blue-100 text-blue-700";
+    case "day": return "bg-green-100 text-green-700";
     default: return "bg-zinc-100 text-zinc-600";
   }
 }
@@ -125,7 +128,18 @@ export default function AccountPage() {
                 ? (user.remainingDays === -1 ? "永久有效" : `剩余 ${user.remainingDays} 天`)
                 : "非会员"}
             </div>
+            {user.isMember && user.membershipExpiresAt && user.membershipExpiresAt > 0 && (
+              <div className="mt-1 text-[11px] text-zinc-400">
+                到期：{formatDate(user.membershipExpiresAt)}
+              </div>
+            )}
           </div>
+        </div>
+        <div className="mt-4 flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-[11px] text-blue-600">
+          <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          会员权益跟随账号，同一账号最多同时在 3 台设备登录
         </div>
       </div>
 
