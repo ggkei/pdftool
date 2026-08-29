@@ -149,7 +149,7 @@ export function LoginModal({ onClose, onSuccess }: Props) {
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-semibold text-zinc-900">登录 PDFTool</h3>
+                <h3 className="text-base font-semibold text-zinc-900">登录 AtoolX</h3>
                 <p className="text-xs text-zinc-500">密码登录或验证码登录</p>
               </div>
             </div>

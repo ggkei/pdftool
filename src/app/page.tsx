@@ -198,10 +198,20 @@ export default function Home() {
       <footer className="mt-20 border-t border-slate-200/70 pt-8 text-center">
         <div className="mx-auto max-w-md">
           <p className="text-xs text-zinc-400">
-            © {new Date().getFullYear()} PDFTool · 纯前端架构 · 文件零上传
+            © {new Date().getFullYear()} AtoolX · 纯前端架构 · 文件零上传
           </p>
           <p className="mt-1 text-[11px] text-zinc-400">
             数据安全由你的浏览器全权守护
+          </p>
+          <p className="mt-1 text-[11px] text-zinc-400">
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-zinc-500 transition-colors"
+            >
+              粤ICP备2026125632号
+            </a>
           </p>
         </div>
       </footer>

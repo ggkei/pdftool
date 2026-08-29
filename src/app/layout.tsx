@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { ClientProviders } from "@/components/ClientProviders";
 
 export const metadata: Metadata = {
-  title: "PDFTool - 纯浏览器端 PDF 工具箱",
+  title: "AtoolX - 纯浏览器端 PDF 工具箱",
   description: "去水印、合并、拆分、旋转、加水印、压缩、转图片、OCR，全部在浏览器本地处理，文件不上传服务器，隐私零风险。",
 };
 

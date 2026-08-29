@@ -202,13 +202,10 @@ export function Navbar() {
       <nav className="mx-auto flex h-14 max-w-6xl items-center gap-1 px-5">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 mr-3 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-glow transition-transform group-hover:scale-105">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 2v6h6" />
-            </svg>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden transition-transform group-hover:scale-105">
+            <img src="/logo.png" alt="AtoolX" className="h-full w-full object-contain" />
           </div>
-          <span className="font-display text-base font-bold tracking-tight text-zinc-900">PDFTool</span>
+          <span className="font-display text-base font-bold tracking-tight text-zinc-900">AtoolX</span>
         </Link>
 
         <span className="h-4 w-px bg-slate-200" />

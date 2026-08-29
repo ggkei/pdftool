@@ -186,7 +186,7 @@ export default function AdminPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">🛠️ PDFTool 管理后台</h1>
+        <h1 className="text-2xl font-bold text-slate-800">🛠️ AtoolX 管理后台</h1>
         <button onClick={() => { setAuthed(false); setScreen("login"); setConfig(null); }} className="rounded border border-slate-300 px-3 py-1 text-xs text-slate-500 hover:bg-slate-50">
           退出登录
         </button>
