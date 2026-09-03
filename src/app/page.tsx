@@ -212,6 +212,15 @@ export default function Home() {
             >
               粤ICP备2026125632号
             </a>
+            {" · "}
+            <a
+              href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030002016475"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-zinc-500 transition-colors"
+            >
+              粤公网安备44030002016475号
+            </a>
           </p>
         </div>
       </footer>
