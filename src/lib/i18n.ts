@@ -73,12 +73,12 @@ export const homeT = {
   en: {
     metaTitle: "AtoolX - Browser-Side PDF Toolbox",
     metaDescription: "Watermark removal, merge, split, rotate, add watermark, compress, convert to image, OCR — all processed locally in your browser. Files never uploaded to server, zero privacy risk.",
-    badge: "{count} tools ready · Runs entirely in your browser",
+    badge: "56 tools ready · Runs entirely in your browser",
     heroTitle: "PDF Processing · Utility Tools",
     heroSubtitle: "Secure · Private · Comprehensive",
     heroDesc: "Remove watermarks, merge, split, compress, OCR —",
     heroDescHighlight: "all processing runs locally in your browser",
-    heroDescSuffix: ", plus {extra}+ free utilities for developers and everyday tasks.",
+    heroDescSuffix: ", plus 28+ free utilities for developers and everyday tasks.",
     privacyLabels: ["Zero Upload", "Use & Delete", "Zero Risk"],
     privacyDescs: [
       "All parsing, processing, and synthesis happen inside your browser",
