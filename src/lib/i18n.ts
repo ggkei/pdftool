@@ -93,8 +93,8 @@ export const homeT = {
     footer: {
       brand: "Pure Frontend · Zero Upload",
       slogan: "Your browser alone guards your data security",
-      icp: "",
-      police: "",
+      icp: "粤ICP备2026125632号",
+      police: "粤公网安备44030002016475号",
     },
     nav: {
       home: "Home",

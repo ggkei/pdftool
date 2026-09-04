@@ -224,27 +224,25 @@ export default async function Home() {
           <p className="mt-1 text-[11px] text-zinc-400">
             {dict.footer.slogan}
           </p>
-          {locale === "zh" && (
-            <p className="mt-1 text-[11px] text-zinc-400">
-              <a
-                href="https://beian.miit.gov.cn/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-zinc-500 transition-colors"
-              >
-                {dict.footer.icp}
-              </a>
-              {" · "}
-              <a
-                href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030002016475"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-zinc-500 transition-colors"
-              >
-                {dict.footer.police}
-              </a>
-            </p>
-          )}
+          <p className="mt-1 text-[11px] text-zinc-400">
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-zinc-500 transition-colors"
+            >
+              {dict.footer.icp}
+            </a>
+            {" · "}
+            <a
+              href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030002016475"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-zinc-500 transition-colors"
+            >
+              {dict.footer.police}
+            </a>
+          </p>
         </div>
       </footer>
     </main>
