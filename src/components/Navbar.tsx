@@ -285,6 +285,15 @@ export function Navbar() {
 
         {/* Right side: user area */}
         <div className="flex items-center gap-2">
+          {/* Language switcher */}
+          <a
+            href={locale === "zh" ? "https://atoolx.com/" : "https://atoolx.cn/"}
+            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-slate-50 transition-colors"
+            title={dict.nav.switchTitle}
+          >
+            {dict.nav.switchLang}
+          </a>
+
           {loading ? (
             <div className="h-8 w-20 animate-pulse rounded-lg bg-slate-100" />
           ) : user ? (
