@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { PrivacyBadge } from "@/components/PrivacyBadge";
 import { TOOLS, TOOL_GROUPS, PDF_TOOLS, UTIL_TOOLS } from "@/lib/tools";
+import { getLocaleFromHostname, homeT, groupT, tagT, toolName, toolDesc, type Locale } from "@/lib/i18n";
 
 interface ToolItem {
+  id: string;
   title: string;
   description: string;
   href: string;
@@ -46,6 +49,7 @@ const STATIC_EXTRAS: Record<string, { href: string; tag?: string; featured?: boo
 const tools: ToolItem[] = TOOLS.map((t) => {
   const extra = STATIC_EXTRAS[t.id] ?? { href: `/${t.id}` };
   return {
+    id: t.id,
     title: t.name,
     description: t.desc,
     href: extra.href,
@@ -93,7 +97,16 @@ function ToolIcon({ name }: { name: string }) {
   );
 }
 
-function ToolCard({ tool, index }: { tool: ToolItem; index: number }) {
+function translateTag(tag: string, locale: Locale): string {
+  return tagT[tag]?.[locale] ?? tag;
+}
+
+function translateGroup(group: string, locale: Locale): string {
+  return groupT[group]?.[locale] ?? group;
+}
+
+function ToolCard({ tool, index, locale }: { tool: ToolItem; index: number; locale: Locale }) {
+  const dict = homeT[locale];
   return (
     <Link
       href={tool.href}
@@ -103,7 +116,7 @@ function ToolCard({ tool, index }: { tool: ToolItem; index: number }) {
       {tool.tag && (
         <span className={`absolute right-3 top-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tool.tag === "热门" ? "bg-brand-100 text-brand-700" : "bg-emerald-100 text-emerald-700"}`}>
           <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          {tool.tag}
+          {translateTag(tool.tag, locale)}
         </span>
       )}
 
@@ -112,12 +125,12 @@ function ToolCard({ tool, index }: { tool: ToolItem; index: number }) {
           <ToolIcon name={tool.icon} />
         </div>
         <h3 className="mb-1 text-[15px] font-semibold text-zinc-900 group-hover:text-brand-700 transition-colors">
-          {tool.title}
+          {toolName(tool.id, locale)}
         </h3>
-        <p className="text-[13px] leading-relaxed text-zinc-500">{tool.description}</p>
+        <p className="text-[13px] leading-relaxed text-zinc-500">{toolDesc(tool.id, locale)}</p>
 
         <div className="mt-3 flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
-          开始使用
+          {dict.toolCardCta}
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
@@ -127,7 +140,12 @@ function ToolCard({ tool, index }: { tool: ToolItem; index: number }) {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const host = headers().get("host") || "";
+  const locale = getLocaleFromHostname(host);
+  const dict = homeT[locale];
+  const extraTools = UTIL_TOOLS.length;
+
   const groupedTools: Record<string, ToolItem[]> = {};
   for (const t of tools) {
     (groupedTools[t.group] = groupedTools[t.group] || []).push(t);
@@ -142,26 +160,26 @@ export default function Home() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500" />
           </span>
-          {TOOLS.length} 个工具已就绪 · 浏览器本地运行
+          {dict.badge.replace("{count}", String(TOOLS.length))}
         </div>
 
         <h1 className="font-display text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl text-balance">
-          PDF 处理 · 实用工具
+          {dict.heroTitle}
           <span className="block bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400 bg-clip-text text-transparent">
-            更安全 · 更私密 · 更全面
+            {dict.heroSubtitle}
           </span>
         </h1>
 
         <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-500 sm:text-lg text-balance">
-          PDF 去水印、合并、拆分、压缩、OCR —
-          <span className="font-medium text-zinc-700"> 所有处理都在你的浏览器本地完成</span>，
-          同时提供 18+ 免费实用小工具（编码、计算、生活服务）。
+          {dict.heroDesc}
+          <span className="font-medium text-zinc-700"> {dict.heroDescHighlight}</span>
+          {dict.heroDescSuffix.replace("{extra}", String(extraTools))}
         </p>
       </section>
 
       {/* Privacy banner */}
       <section className="mb-14 animate-slide-up" style={{ animationDelay: "120ms" }}>
-        <PrivacyBadge />
+        <PrivacyBadge locale={locale} />
       </section>
 
       {/* Groups */}
@@ -169,25 +187,28 @@ export default function Home() {
         const groupTools = groupedTools[groupKey];
         if (!groupTools || groupTools.length === 0) return null;
         const isPdf = groupKey === "PDF 工具";
+        const translatedGroup = translateGroup(groupKey, locale);
         return (
           <section key={groupKey} className="mb-12 animate-slide-up" style={{ animationDelay: `${240 + gi * 60}ms` }}>
             <div className="mb-5 flex items-end justify-between">
               <div>
                 <h2 className="font-display text-xl font-semibold text-zinc-900 sm:text-2xl">
-                  {groupKey}
+                  {translatedGroup}
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500">
-                  {isPdf ? `${PDF_TOOLS.length} 个专业 PDF 处理工具` : `${groupTools.length} 个免费在线小工具`}
+                  {isPdf
+                    ? dict.pdfSectionSubtitle.replace("{count}", String(PDF_TOOLS.length))
+                    : dict.utilSectionSubtitle.replace("{count}", String(groupTools.length))}
                 </p>
               </div>
               <span className={`hidden rounded-full px-3 py-1 text-xs font-medium sm:inline-block ${isPdf ? "bg-brand-50 text-brand-600" : "bg-emerald-50 text-emerald-600"}`}>
-                {isPdf ? "需登录解锁高级功能" : "完全免费"}
+                {isPdf ? dict.pdfBadge : dict.utilBadge}
               </span>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {groupTools.map((tool, i) => (
-                <ToolCard key={tool.href} tool={tool} index={i} />
+                <ToolCard key={tool.href} tool={tool} index={i} locale={locale} />
               ))}
             </div>
           </section>
@@ -198,30 +219,32 @@ export default function Home() {
       <footer className="mt-20 border-t border-slate-200/70 pt-8 text-center">
         <div className="mx-auto max-w-md">
           <p className="text-xs text-zinc-400">
-            © {new Date().getFullYear()} AtoolX · 纯前端架构 · 文件零上传
+            &copy; {new Date().getFullYear()} AtoolX · {dict.footer.brand}
           </p>
           <p className="mt-1 text-[11px] text-zinc-400">
-            数据安全由你的浏览器全权守护
+            {dict.footer.slogan}
           </p>
-          <p className="mt-1 text-[11px] text-zinc-400">
-            <a
-              href="https://beian.miit.gov.cn/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-zinc-500 transition-colors"
-            >
-              粤ICP备2026125632号
-            </a>
-            {" · "}
-            <a
-              href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030002016475"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-zinc-500 transition-colors"
-            >
-              粤公网安备44030002016475号
-            </a>
-          </p>
+          {locale === "zh" && (
+            <p className="mt-1 text-[11px] text-zinc-400">
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-zinc-500 transition-colors"
+              >
+                {dict.footer.icp}
+              </a>
+              {" · "}
+              <a
+                href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030002016475"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-zinc-500 transition-colors"
+              >
+                {dict.footer.police}
+              </a>
+            </p>
+          )}
         </div>
       </footer>
     </main>

@@ -2,34 +2,48 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { ClientProviders } from "@/components/ClientProviders";
+import { headers } from "next/headers";
+import { getLocaleFromHostname, homeT } from "@/lib/i18n";
+import { LocaleProvider } from "@/components/LocaleContext";
 
-export const metadata: Metadata = {
-  title: "AtoolX - 纯浏览器端 PDF 工具箱",
-  description: "去水印、合并、拆分、旋转、加水印、压缩、转图片、OCR，全部在浏览器本地处理，文件不上传服务器，隐私零风险。",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const host = headers().get("host") || "";
+  const locale = getLocaleFromHostname(host);
+  const dict = homeT[locale];
+  return {
+    title: dict.metaTitle,
+    description: dict.metaDescription,
+  };
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const host = headers().get("host") || "";
+  const locale = getLocaleFromHostname(host);
+  const lang = homeT[locale].lang;
+
   return (
-    <html lang="zh-CN">
+    <html lang={lang}>
       <body className="min-h-screen font-sans text-zinc-900 antialiased">
-        <ClientProviders>
-          <div className="relative min-h-screen">
-            <div
-              className="pointer-events-none fixed inset-0 z-0 bg-grid-pattern bg-[length:32px_32px] opacity-[0.35]"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-radial-fade"
-              aria-hidden
-            />
-            <Navbar />
-            <div className="relative z-10">{children}</div>
-          </div>
-        </ClientProviders>
+        <LocaleProvider locale={locale}>
+          <ClientProviders>
+            <div className="relative min-h-screen">
+              <div
+                className="pointer-events-none fixed inset-0 z-0 bg-grid-pattern bg-[length:32px_32px] opacity-[0.35]"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-radial-fade"
+                aria-hidden
+              />
+              <Navbar />
+              <div className="relative z-10">{children}</div>
+            </div>
+          </ClientProviders>
+        </LocaleProvider>
       </body>
     </html>
   );

@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { PDF_TOOLS, UTIL_TOOLS, TOOL_GROUPS, getToolHref, type ToolDef } from "@/lib/tools";
 import { useUser } from "@/components/UserContext";
 import { LoginModal } from "@/components/LoginModal";
+import { useLocale } from "@/components/LocaleContext";
+import { homeT, groupName, toolName, toolDesc, t } from "@/lib/i18n";
 
 const ICON_PATHS: Record<string, React.ReactNode> = {
   merge: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 6h9a2 2 0 012 2v8a2 2 0 01-2 2H8m0-12H5a2 2 0 00-2 2v8a2 2 0 002 2h3m0-12v12" />,
@@ -46,6 +48,7 @@ function Icon({ name, className }: { name: string; className?: string }) {
 }
 
 function ToolListGrid({ tools }: { tools: ToolDef[] }) {
+  const locale = useLocale();
   return (
     <div className="grid grid-cols-2 gap-1">
       {tools.map((t) => (
@@ -58,8 +61,8 @@ function ToolListGrid({ tools }: { tools: ToolDef[] }) {
             <Icon name={t.icon} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-medium text-zinc-800">{t.name}</span>
-            <span className="block truncate text-[11px] text-zinc-500">{t.desc}</span>
+            <span className="block text-sm font-medium text-zinc-800">{toolName(t.id, locale)}</span>
+            <span className="block truncate text-[11px] text-zinc-500">{toolDesc(t.id, locale)}</span>
           </span>
         </Link>
       ))}
@@ -68,10 +71,11 @@ function ToolListGrid({ tools }: { tools: ToolDef[] }) {
 }
 
 function UtilGroupSection({ group, tools, onSelect }: { group: string; tools: ToolDef[]; onSelect: () => void }) {
+  const locale = useLocale();
   return (
     <section>
       <h4 className="mb-2 flex items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-        {group}
+        {groupName(group, locale)}
         <span className="h-px flex-1 bg-slate-100" />
         <span className="text-[10px] text-zinc-400">{tools.length}</span>
       </h4>
@@ -87,7 +91,7 @@ function UtilGroupSection({ group, tools, onSelect }: { group: string; tools: To
               <Icon name={t.icon} className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[13px] font-medium text-zinc-800">{t.name}</span>
+              <span className="block text-[13px] font-medium text-zinc-800">{toolName(t.id, locale)}</span>
             </span>
           </Link>
         ))}
@@ -157,6 +161,8 @@ function Dropdown({
 
 export function Navbar() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const dict = homeT[locale];
   const [openMenu, setOpenMenu] = useState<"pdf" | "util" | null>(null);
   const { user, loading, openLogin, logout } = useUser();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -217,11 +223,11 @@ export function Navbar() {
               pathname === "/" ? "text-brand-600" : "text-zinc-600 hover:text-brand-600"
             }`}
           >
-            首页
+            {dict.nav.home}
           </Link>
 
           <Dropdown
-            label="PDF 工具"
+            label={dict.nav.pdfTools}
             isOpen={openMenu === "pdf"}
             onOpen={() => setOpenMenu("pdf")}
             onClose={() => setOpenMenu(null)}
@@ -234,16 +240,16 @@ export function Navbar() {
             }
           >
             <div className="mb-3 flex items-center justify-between px-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">PDF 工具</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{dict.nav.pdfTools}</span>
               <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-medium text-brand-600">
-                {PDF_TOOLS.length} 个
+                {t("nav.items", locale, { n: PDF_TOOLS.length })}
               </span>
             </div>
             <ToolListGrid tools={PDF_TOOLS} />
           </Dropdown>
 
           <Dropdown
-            label="小工具"
+            label={dict.nav.utilities}
             isOpen={openMenu === "util"}
             onOpen={() => setOpenMenu("util")}
             onClose={() => setOpenMenu(null)}
@@ -257,9 +263,9 @@ export function Navbar() {
             }
           >
             <div className="mb-3 flex items-center justify-between px-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">小工具</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{dict.nav.utilities}</span>
               <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
-                {UTIL_TOOLS.length} 个
+                {t("nav.items", locale, { n: UTIL_TOOLS.length })}
               </span>
             </div>
             <div className="grid grid-cols-3 gap-4">
@@ -297,7 +303,7 @@ export function Navbar() {
                   </span>
                 )}
                 <span className="max-w-[120px] truncate">
-                  {user.nickname || user.email?.split("@")[0] || "用户"}
+                  {user.nickname || user.email?.split("@")[0] || dict.nav.user}
                 </span>
                 <svg className={`h-3 w-3 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -309,10 +315,10 @@ export function Navbar() {
                     <div className="text-sm font-medium text-zinc-800 truncate">{user.email}</div>
                     {user.isMember ? (
                       <div className="mt-0.5 text-[11px] text-amber-600">
-                        {user.remainingDays === -1 ? "永久会员" : `剩余 ${user.remainingDays} 天`}
+                        {user.remainingDays === -1 ? dict.nav.forever : t("nav.remainingDays", locale, { n: user.remainingDays })}
                       </div>
                     ) : (
-                      <div className="mt-0.5 text-[11px] text-zinc-400">非会员</div>
+                      <div className="mt-0.5 text-[11px] text-zinc-400">{dict.nav.notMember}</div>
                     )}
                   </div>
                   <Link
@@ -320,13 +326,13 @@ export function Navbar() {
                     onClick={() => setUserMenuOpen(false)}
                     className="block rounded-lg px-3 py-2 text-xs text-zinc-600 hover:bg-slate-50"
                   >
-                    账户中心
+                    {dict.nav.account}
                   </Link>
                   <button
                     onClick={() => { logout(); setUserMenuOpen(false); }}
                     className="block w-full rounded-lg px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50"
                   >
-                    退出登录
+                    {dict.nav.logout}
                   </button>
                 </div>
               )}
@@ -339,7 +345,7 @@ export function Navbar() {
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              登录
+              {dict.nav.login}
             </button>
           )}
         </div>

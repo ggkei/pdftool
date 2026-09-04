@@ -1,4 +1,13 @@
-export function PrivacyBadge({ compact = false }: { compact?: boolean }) {
+"use client";
+
+import { useLocale } from "@/components/LocaleContext";
+import { homeT, type Locale } from "@/lib/i18n";
+
+export function PrivacyBadge({ compact = false, locale: propLocale }: { compact?: boolean; locale?: Locale }) {
+  const ctxLocale = useLocale();
+  const locale = propLocale ?? ctxLocale;
+  const dict = homeT[locale];
+
   if (compact) {
     return (
       <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200/70">
@@ -6,7 +15,7 @@ export function PrivacyBadge({ compact = false }: { compact?: boolean }) {
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
-        本地处理 · 即关即删
+        {dict.privacyLabels[0]} · {dict.privacyLabels[1]}
       </div>
     );
   }
@@ -19,8 +28,8 @@ export function PrivacyBadge({ compact = false }: { compact?: boolean }) {
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       ),
-      title: "文件零上传",
-      desc: "所有解析、处理、合成都在你的浏览器内完成",
+      title: dict.privacyLabels[0],
+      desc: dict.privacyDescs[0],
     },
     {
       icon: (
@@ -29,8 +38,8 @@ export function PrivacyBadge({ compact = false }: { compact?: boolean }) {
           <path d="M12 6v6l4 2" />
         </svg>
       ),
-      title: "即用即删",
-      desc: "关闭页面即从内存释放，不残留任何痕迹",
+      title: dict.privacyLabels[1],
+      desc: dict.privacyDescs[1],
     },
     {
       icon: (
@@ -39,8 +48,8 @@ export function PrivacyBadge({ compact = false }: { compact?: boolean }) {
           <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
       ),
-      title: "零风险",
-      desc: "服务器仅存配置信息，无任何用户文件",
+      title: dict.privacyLabels[2],
+      desc: dict.privacyDescs[2],
     },
   ];
 
