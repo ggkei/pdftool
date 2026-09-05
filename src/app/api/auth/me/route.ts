@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+﻿﻿﻿﻿import { NextResponse } from "next/server";
 import { getCurrentUser, logout } from "@/lib/auth";
 
 export const runtime = "nodejs";

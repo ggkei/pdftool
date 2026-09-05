@@ -3,11 +3,35 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { PDF_TOOLS, UTIL_TOOLS, TOOL_GROUPS, getToolHref, type ToolDef } from "@/lib/tools";
+import { PDF_TOOLS, IMAGE_TOOLS, UTIL_TOOLS, TOOL_GROUPS, getToolHref, type ToolDef } from "@/lib/tools";
 import { useUser } from "@/components/UserContext";
 import { LoginModal } from "@/components/LoginModal";
-import { useLocale } from "@/components/LocaleContext";
-import { homeT, groupName, toolName, toolDesc, t } from "@/lib/i18n";
+import { createT, t, buildLocale } from "@/i18n/dictionary";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+
+const GROUP_ORDER = [
+  t("groups.pdf_tools"),
+  t("groups.image_tools"),
+  t("groups.encoding"),
+  t("groups.dev"),
+  t("groups.text"),
+  t("groups.util"),
+  t("groups.life"),
+];
+
+function groupToI18nKey(groupKey: string): string {
+  const index = GROUP_ORDER.indexOf(groupKey);
+  const keys = [
+    "home.category_pdf",
+    "home.category_image",
+    "home.group_encoding",
+    "home.group_dev",
+    "home.group_text",
+    "home.group_util",
+    "home.group_life",
+  ];
+  return keys[index] || "home.category_util";
+}
 
 const ICON_PATHS: Record<string, React.ReactNode> = {
   merge: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 6h9a2 2 0 012 2v8a2 2 0 01-2 2H8m0-12H5a2 2 0 00-2 2v8a2 2 0 002 2h3m0-12v12" />,
@@ -37,6 +61,7 @@ const ICON_PATHS: Record<string, React.ReactNode> = {
   card: <><rect x="2" y="5" width="20" height="14" rx="2" strokeWidth={1.8} /><circle cx="9" cy="11" r="2" strokeWidth={1.8} /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M14 10h6M14 13h4" /></>,
   hex: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 2l8 4.5v11L12 22l-8-4.5v-11L12 2z" />,
   calendar: <><rect x="3" y="4" width="18" height="18" rx="2" strokeWidth={1.8} /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 2v4M8 2v4M3 10h18" /></>,
+  unlock: <><rect x="4" y="11" width="16" height="10" rx="2" strokeWidth={1.8} /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 11V7a4 4 0 018 0" /></>,
 };
 
 function Icon({ name, className }: { name: string; className?: string }) {
@@ -47,22 +72,21 @@ function Icon({ name, className }: { name: string; className?: string }) {
   );
 }
 
-function ToolListGrid({ tools }: { tools: ToolDef[] }) {
-  const locale = useLocale();
+function ToolListGrid({ tools, tt, langQuery }: { tools: ToolDef[]; tt: (key: string) => string; langQuery: string }) {
   return (
     <div className="grid grid-cols-2 gap-1">
       {tools.map((t) => (
         <Link
           key={t.id}
-          href={getToolHref(t)}
+          href={getToolHref(t) + langQuery}
           className="group flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-slate-50"
         >
           <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-600 group-hover:text-white">
             <Icon name={t.icon} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-medium text-zinc-800">{toolName(t.id, locale)}</span>
-            <span className="block truncate text-[11px] text-zinc-500">{toolDesc(t.id, locale)}</span>
+            <span className="block text-sm font-medium text-zinc-800">{tt(`tools.${t.id}.name`)}</span>
+            <span className="block truncate text-[11px] text-zinc-500">{tt(`tools.${t.id}.desc`)}</span>
           </span>
         </Link>
       ))}
@@ -70,12 +94,11 @@ function ToolListGrid({ tools }: { tools: ToolDef[] }) {
   );
 }
 
-function UtilGroupSection({ group, tools, onSelect }: { group: string; tools: ToolDef[]; onSelect: () => void }) {
-  const locale = useLocale();
+function UtilGroupSection({ group, tools, onSelect, tt, langQuery }: { group: string; tools: ToolDef[]; onSelect: () => void; tt: (key: string) => string; langQuery: string }) {
   return (
     <section>
       <h4 className="mb-2 flex items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-        {groupName(group, locale)}
+        {group}
         <span className="h-px flex-1 bg-slate-100" />
         <span className="text-[10px] text-zinc-400">{tools.length}</span>
       </h4>
@@ -83,7 +106,7 @@ function UtilGroupSection({ group, tools, onSelect }: { group: string; tools: To
         {tools.map((t) => (
           <Link
             key={t.id}
-            href={getToolHref(t)}
+            href={getToolHref(t) + langQuery}
             onClick={onSelect}
             className="group flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-left transition-colors hover:bg-slate-50"
           >
@@ -91,7 +114,7 @@ function UtilGroupSection({ group, tools, onSelect }: { group: string; tools: To
               <Icon name={t.icon} className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[13px] font-medium text-zinc-800">{toolName(t.id, locale)}</span>
+              <span className="block text-[13px] font-medium text-zinc-800">{tt(`tools.${t.id}.name`)}</span>
             </span>
           </Link>
         ))}
@@ -161,12 +184,21 @@ function Dropdown({
 
 export function Navbar() {
   const pathname = usePathname();
-  const locale = useLocale();
-  const dict = homeT[locale];
-  const [openMenu, setOpenMenu] = useState<"pdf" | "util" | null>(null);
+  const [openMenu, setOpenMenu] = useState<"pdf" | "image" | "util" | null>(null);
   const { user, loading, openLogin, logout } = useUser();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Runtime locale detection for dev mode (?lang=en)
+  const [locale, setLocale] = useState<"zh" | "en">(buildLocale);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const params = new URLSearchParams(window.location.search);
+    const lang = params.get("lang");
+    if (lang === "en" || lang === "zh") setLocale(lang);
+  }, []);
+  const tt = createT(locale);
 
   useEffect(() => {
     setOpenMenu(null);
@@ -184,11 +216,13 @@ export function Navbar() {
   }, []);
 
   const pdfActive = pathname.startsWith("/pdf-");
+  const imageActive = pathname.startsWith("/image-");
   const utilActive = pathname.startsWith("/util-");
 
   const utilGroups: Record<string, ToolDef[]> = {};
-  for (const g of TOOL_GROUPS) {
-    if (g === "PDF 工具") continue;
+  for (let i = 0; i < TOOL_GROUPS.length; i++) {
+    if (i < 2) continue; // Skip PDF and Image groups
+    const g = TOOL_GROUPS[i];
     utilGroups[g] = UTIL_TOOLS.filter((t) => t.group === g);
   }
 
@@ -204,30 +238,31 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-slate-200/50 bg-white/75 backdrop-blur-xl backdrop-saturate-150">
       <nav className="mx-auto flex h-14 max-w-6xl items-center gap-1 px-5">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 mr-3 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden transition-transform group-hover:scale-105">
-            <img src="/logo.png" alt="AtoolX" className="h-full w-full object-contain" />
-          </div>
-          <span className="font-display text-base font-bold tracking-tight text-zinc-900">AtoolX</span>
+        <Link href={"/" + (locale === "en" ? "?lang=en" : "")} className="flex items-center gap-2.5 flex-shrink-0 mr-3 group">
+          <img
+            src="/logo.png"
+            alt="AtoolX"
+            className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105 group-active:scale-95"
+          />
         </Link>
 
         <span className="h-4 w-px bg-slate-200" />
 
         <div className="flex items-center gap-1 ml-2 flex-1">
           <Link
-            href="/"
+            href={"/" + (locale === "en" ? "?lang=en" : "")}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               pathname === "/" ? "text-brand-600" : "text-zinc-600 hover:text-brand-600"
             }`}
           >
-            {dict.nav.home}
+            {tt("nav.home")}
           </Link>
 
           <Dropdown
-            label={dict.nav.pdfTools}
+            label={tt("nav.pdf_tools")}
             isOpen={openMenu === "pdf"}
             onOpen={() => setOpenMenu("pdf")}
             onClose={() => setOpenMenu(null)}
@@ -235,21 +270,45 @@ export function Navbar() {
             width="w-[520px]"
             icon={
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 4h10l3 3v13a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 4h10l3 3v13a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-4z" />
               </svg>
             }
           >
             <div className="mb-3 flex items-center justify-between px-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{dict.nav.pdfTools}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{tt("nav.pdf_tools")}</span>
               <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-medium text-brand-600">
-                {t("nav.items", locale, { n: PDF_TOOLS.length })}
+                {tt("common.count_items").replace("{n}", String(PDF_TOOLS.length))}
               </span>
             </div>
-            <ToolListGrid tools={PDF_TOOLS} />
+            <ToolListGrid tools={PDF_TOOLS} tt={tt} langQuery={locale === "en" ? "?lang=en" : ""} />
           </Dropdown>
 
           <Dropdown
-            label={dict.nav.utilities}
+            label={tt("nav.image_tools")}
+            isOpen={openMenu === "image"}
+            onOpen={() => setOpenMenu("image")}
+            onClose={() => setOpenMenu(null)}
+            active={imageActive}
+            width="w-[560px]"
+            icon={
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="16" rx="2" strokeWidth={1.8} />
+                <circle cx="9" cy="10" r="1.5" strokeWidth={1.8} />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 17l5-5 4 4 3-3 6 6" />
+              </svg>
+            }
+          >
+            <div className="mb-3 flex items-center justify-between px-1">
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{tt("nav.image_tools")}</span>
+              <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-600">
+                {tt("common.count_items").replace("{n}", String(IMAGE_TOOLS.length))}
+              </span>
+            </div>
+            <ToolListGrid tools={IMAGE_TOOLS} tt={tt} langQuery={locale === "en" ? "?lang=en" : ""} />
+          </Dropdown>
+
+          <Dropdown
+            label={tt("nav.util_tools")}
             isOpen={openMenu === "util"}
             onOpen={() => setOpenMenu("util")}
             onClose={() => setOpenMenu(null)}
@@ -263,19 +322,21 @@ export function Navbar() {
             }
           >
             <div className="mb-3 flex items-center justify-between px-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{dict.nav.utilities}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{tt("nav.util_tools")}</span>
               <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
-                {t("nav.items", locale, { n: UTIL_TOOLS.length })}
+                {tt("common.count_items").replace("{n}", String(UTIL_TOOLS.length))}
               </span>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              {Object.entries(utilGroups).map(([group, tools]) =>
+              {Object.entries(utilGroups).map(([group, tools], idx) =>
                 tools.length > 0 ? (
                   <UtilGroupSection
                     key={group}
-                    group={group}
+                    group={tt(groupToI18nKey(group))}
                     tools={tools}
                     onSelect={() => setOpenMenu(null)}
+                    tt={tt}
+                    langQuery={locale === "en" ? "?lang=en" : ""}
                   />
                 ) : null
               )}
@@ -285,15 +346,6 @@ export function Navbar() {
 
         {/* Right side: user area */}
         <div className="flex items-center gap-2">
-          {/* Language switcher */}
-          <a
-            href={locale === "zh" ? "https://atoolx.com/" : "https://atoolx.cn/"}
-            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-slate-50 transition-colors"
-            title={dict.nav.switchTitle}
-          >
-            {dict.nav.switchLang}
-          </a>
-
           {loading ? (
             <div className="h-8 w-20 animate-pulse rounded-lg bg-slate-100" />
           ) : user ? (
@@ -312,7 +364,7 @@ export function Navbar() {
                   </span>
                 )}
                 <span className="max-w-[120px] truncate">
-                  {user.nickname || user.email?.split("@")[0] || dict.nav.user}
+                  {user.nickname || user.email?.split("@")[0] || tt("common.user_fallback")}
                 </span>
                 <svg className={`h-3 w-3 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -324,10 +376,10 @@ export function Navbar() {
                     <div className="text-sm font-medium text-zinc-800 truncate">{user.email}</div>
                     {user.isMember ? (
                       <div className="mt-0.5 text-[11px] text-amber-600">
-                        {user.remainingDays === -1 ? dict.nav.forever : t("nav.remainingDays", locale, { n: user.remainingDays })}
+                        {user.remainingDays === -1 ? tt("membership.forever") : tt("membership.remaining_days").replace("{n}", String(user.remainingDays))}
                       </div>
                     ) : (
-                      <div className="mt-0.5 text-[11px] text-zinc-400">{dict.nav.notMember}</div>
+                      <div className="mt-0.5 text-[11px] text-zinc-400">{tt("membership.not_member")}</div>
                     )}
                   </div>
                   <Link
@@ -335,13 +387,13 @@ export function Navbar() {
                     onClick={() => setUserMenuOpen(false)}
                     className="block rounded-lg px-3 py-2 text-xs text-zinc-600 hover:bg-slate-50"
                   >
-                    {dict.nav.account}
+                    {tt("nav.account_center")}
                   </Link>
                   <button
                     onClick={() => { logout(); setUserMenuOpen(false); }}
                     className="block w-full rounded-lg px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50"
                   >
-                    {dict.nav.logout}
+                    {tt("account.logout")}
                   </button>
                 </div>
               )}
@@ -354,10 +406,11 @@ export function Navbar() {
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              {dict.nav.login}
+              {tt("nav.login")}
             </button>
           )}
         </div>
+        <LanguageSwitcher className="ml-2" />
       </nav>
     </header>
   );

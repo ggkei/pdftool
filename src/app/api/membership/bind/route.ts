@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+﻿﻿﻿﻿import { NextRequest, NextResponse } from "next/server";
 import { bindMembershipToUser } from "@/lib/db";
 import { validateTokenInMemory, markTokenUsedInMemory } from "@/lib/inMemoryDb";
 import { getCurrentUser } from "@/lib/auth";

@@ -13,10 +13,13 @@
     "test:tools": "playwright test -g \"一致性\""
   },
   "dependencies": {
+    "@tensorflow-models/body-pix": "^2.2.1",
+    "@tensorflow/tfjs": "^4.22.0",
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.21.0",
     "@types/qrcode": "^1.5.6",
     "bcryptjs": "^3.0.3",
+    "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
     "next": "14.2.5",
     "nodemailer": "^9.0.5",

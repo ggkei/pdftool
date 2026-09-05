@@ -1,8 +1,8 @@
-﻿export interface ToolDef {
+﻿﻿﻿﻿export interface ToolDef {
   id: string;
   name: string;
   desc: string;
-  category: "pdf" | "util";
+  category: "pdf" | "util" | "image";
   requiresFileLimit: boolean;
   icon: string;
   group: string;
@@ -139,6 +139,216 @@ export const TOOLS: ToolDef[] = [
     tips: ["文本型 PDF 提取速度快、准确率高", "扫描件首次使用需要下载语言包（约 15-30MB）", "手写体、艺术字体识别准确率较低"],
   },
 
+  {
+    id: "delete-page", name: "PDF 删除页面", desc: "删除指定页面",
+    category: "pdf", requiresFileLimit: true, icon: "eraser", group: "PDF 工具",
+    intro: "在线 PDF 页面删除工具，可快速删除 PDF 中的指定页面，支持按页码删除和批量删除，保持文档其余内容不变。",
+    usage: [
+      "上传 PDF 文件。",
+      "在页面列表中勾选要删除的页面，支持多选。",
+      "点击「删除选中页面」按钮。",
+      "下载处理后的 PDF 文件。",
+    ],
+  },
+  {
+    id: "add-page-numbers", name: "PDF 添加页码", desc: "批量添加页码",
+    category: "pdf", requiresFileLimit: true, icon: "text", group: "PDF 工具",
+    intro: "在线 PDF 页码添加工具，支持在 PDF 页面底部或顶部批量添加页码，可自定义页码样式、起始页码和位置偏移。",
+    usage: [
+      "上传 PDF 文件。",
+      "设置页码样式（如 1, 2, 3 或 Page 1 of N）。",
+      "选择页码位置（底部居中 / 底部右侧 / 顶部居中）。",
+      "点击「添加页码」按钮，下载新文件。",
+    ],
+  },
+  {
+    id: "metadata", name: "PDF 信息查看", desc: "查看 / 编辑元数据",
+    category: "pdf", requiresFileLimit: true, icon: "text", group: "PDF 工具",
+    intro: "在线 PDF 元数据查看与编辑工具，可查看和修改 PDF 文件的标题、作者、主题、关键词、创建日期等属性信息。",
+    usage: [
+      "上传 PDF 文件。",
+      "查看当前 PDF 的元数据信息（标题、作者、创建日期等）。",
+      "编辑需要修改的字段。",
+      "点击「保存」下载修改后的 PDF 文件。",
+    ],
+  },
+  {
+    id: "protect", name: "PDF 加密", desc: "设置密码保护",
+    category: "pdf", requiresFileLimit: true, icon: "lock", group: "PDF 工具",
+    intro: "在线 PDF 加密工具，为 PDF 文件添加打开密码，保护文档内容不被未授权访问。支持设置用户密码和权限密码。",
+    usage: [
+      "上传需要加密的 PDF 文件。",
+      "设置打开密码（用户密码）。",
+      "可选设置权限密码，限制打印、复制、编辑等操作。",
+      "点击「加密」按钮，下载受保护的 PDF 文件。",
+    ],
+  },
+  {
+    id: "unlock", name: "PDF 解密", desc: "移除密码保护",
+    category: "pdf", requiresFileLimit: true, icon: "lock", group: "PDF 工具",
+    intro: "在线 PDF 解密工具，移除 PDF 文件的打开密码和权限限制。需要输入正确的原始密码才能成功解密。",
+    usage: [
+      "上传受密码保护的 PDF 文件。",
+      "输入文件的打开密码。",
+      "点击「解密」按钮，移除密码保护。",
+      "下载无密码限制的 PDF 文件。",
+    ],
+  },
+
+  // ===== 图片工具 =====
+  {
+    id: "image-id-photo", name: "证件照制作", desc: "AI 自动抠图换背景",
+    category: "image", requiresFileLimit: false, icon: "card", group: "图片工具",
+    intro: "在线证件照制作工具，AI 自动识别人像并抠图，支持更换背景颜色（红 / 蓝 / 白），输出标准尺寸证件照。",
+    usage: [
+      "上传人像照片。",
+      "AI 自动识别并抠出人像。",
+      "选择背景颜色（红 / 蓝 / 白）。",
+      "选择证件照尺寸（一寸 / 二寸 / 小一寸）。",
+      "点击「生成证件照」下载处理后的图片。",
+    ],
+  },
+  {
+    id: "image-ocr", name: "图片 OCR 识别", desc: "图片转文字",
+    category: "image", requiresFileLimit: false, icon: "text", group: "图片工具",
+    intro: "在线图片 OCR 文字识别工具，使用 Tesseract.js 引擎识别图片中的文字内容，支持中英文，适用于截图、扫描件等场景。",
+    usage: [
+      "上传包含文字的图片（JPG / PNG）。",
+      "选择识别语言（中文 / 英文 / 混合）。",
+      "点击「开始识别」按钮。",
+      "查看识别结果，支持一键复制或下载为 TXT。",
+    ],
+  },
+  {
+    id: "image-compress", name: "图片压缩", desc: "减小图片体积",
+    category: "image", requiresFileLimit: false, icon: "compress", group: "图片工具",
+    intro: "在线图片压缩工具，通过调节压缩质量和尺寸来减小图片文件体积，支持 JPG / PNG / WebP 格式，适合网页优化和社交分享。",
+    usage: [
+      "上传需要压缩的图片文件。",
+      "拖动滑块调节压缩质量（1-100%）。",
+      "可选设置输出尺寸。",
+      "点击「压缩」按钮，查看压缩前后对比并下载。",
+    ],
+  },
+  {
+    id: "image-resize", name: "图片缩放", desc: "调整图片尺寸",
+    category: "image", requiresFileLimit: false, icon: "image", group: "图片工具",
+    intro: "在线图片尺寸调整工具，可精确设置图片的宽度和高度，支持保持比例缩放、指定像素尺寸或百分比缩放，输出常见网络尺寸。",
+    usage: [
+      "上传图片文件。",
+      "输入目标宽度或高度（保持比例自动计算另一边）。",
+      "选择输出格式（原格式 / JPG / PNG）。",
+      "点击「调整尺寸」按钮下载新图片。",
+    ],
+  },
+  {
+    id: "image-convert", name: "图片格式转换", desc: "JPG / PNG / WebP 互转",
+    category: "image", requiresFileLimit: false, icon: "image", group: "图片工具",
+    intro: "在线图片格式转换工具，支持 JPG、PNG、WebP、GIF 等多种格式之间的相互转换，可设置输出质量和尺寸。",
+    usage: [
+      "上传图片文件。",
+      "选择输出格式（JPG / PNG / WebP / GIF）。",
+      "可选调整输出质量和尺寸。",
+      "点击「转换」按钮下载转换后的图片。",
+    ],
+  },
+  {
+    id: "image-rotate", name: "图片旋转", desc: "旋转 / 翻转图片",
+    category: "image", requiresFileLimit: false, icon: "rotate", group: "图片工具",
+    intro: "在线图片旋转工具，支持 90/180/270 度旋转以及水平/垂直翻转，适用于纠正拍摄方向错误的照片。",
+    usage: [
+      "上传图片文件。",
+      "选择旋转角度（90 左转 / 90 右转 / 180）或翻转方向。",
+      "预览旋转效果。",
+      "点击「应用」下载旋转后的图片。",
+    ],
+  },
+  {
+    id: "image-base64", name: "图片 Base64", desc: "图片与 Base64 互转",
+    category: "image", requiresFileLimit: false, icon: "lock", group: "图片工具",
+    intro: "在线图片与 Base64 编码互转工具，将图片转为 Data URL 格式的 Base64 字符串，或从 Base64 还原为图片文件下载。",
+    usage: [
+      "上传图片文件或粘贴 Base64 字符串。",
+      "系统自动转换。",
+      "查看或复制 Base64 字符串，或下载还原的图片。",
+    ],
+  },
+  {
+    id: "image-watermark", name: "图片加水印", desc: "给图片添加水印",
+    category: "image", requiresFileLimit: false, icon: "watermark", group: "图片工具",
+    intro: "在线图片加水印工具，支持文字水印和图片水印两种模式，可自定义位置、透明度、大小和旋转角度。",
+    usage: [
+      "上传需要添加水印的图片。",
+      "选择水印类型（文字 / 图片）。",
+      "设置水印位置、透明度、大小。",
+      "点击「添加水印」按钮下载处理后的图片。",
+    ],
+  },
+  {
+    id: "image-crop", name: "图片裁剪", desc: "裁剪图片区域",
+    category: "image", requiresFileLimit: false, icon: "image", group: "图片工具",
+    intro: "在线图片裁剪工具，支持自由裁剪和固定比例裁剪（如 1:1、4:3、16:9），可预览并导出精确裁剪后的图片。",
+    usage: [
+      "上传图片文件。",
+      "在预览区域拖拽选择裁剪范围，或选择固定比例。",
+      "预览裁剪结果。",
+      "点击「裁剪」按钮下载新图片。",
+    ],
+  },
+  {
+    id: "image-filter", name: "图片滤镜", desc: "应用滤镜效果",
+    category: "image", requiresFileLimit: false, icon: "palette", group: "图片工具",
+    intro: "在线图片滤镜工具，提供多种常用滤镜效果（黑白、复古、模糊、锐化、亮度、对比度等），一键美化照片。",
+    usage: [
+      "上传图片文件。",
+      "从滤镜列表中选择效果（黑白 / 复古 / 模糊 / 锐化等）。",
+      "调节效果强度。",
+      "点击「应用」下载处理后的图片。",
+    ],
+  },
+  {
+    id: "image-mosaic", name: "图片马赛克", desc: "局部马赛克 / 模糊",
+    category: "image", requiresFileLimit: false, icon: "image", group: "图片工具",
+    intro: "在线图片马赛克工具，可对图片的指定区域添加马赛克或高斯模糊效果，保护敏感信息或隐私内容。",
+    usage: [
+      "上传图片文件。",
+      "在图片上拖拽选择要打码的区域。",
+      "选择打码类型（马赛克 / 模糊）和强度。",
+      "点击「应用」下载处理后的图片。",
+    ],
+  },
+  {
+    id: "image-info", name: "图片信息", desc: "查看图片详细信息",
+    category: "image", requiresFileLimit: false, icon: "image", group: "图片工具",
+    intro: "在线图片信息查看工具，可提取图片的 EXIF 元数据（拍摄设备、GPS 位置、光圈、快门速度、ISO 等）、文件大小、尺寸、颜色模式等详细信息。",
+    usage: [
+      "上传图片文件。",
+      "系统自动提取并展示所有元数据。",
+      "查看文件基本信息和 EXIF 数据（如有）。",
+    ],
+  },
+  {
+    id: "image-beautify", name: "图片美化", desc: "亮度 / 对比度 / 饱和度",
+    category: "image", requiresFileLimit: false, icon: "palette", group: "图片工具",
+    intro: "在线图片美化工具，可调节图片的亮度、对比度、饱和度、色相、色温等参数，实时预览效果，一键修复照片色彩。",
+    usage: [
+      "上传图片文件。",
+      "拖动滑块调节亮度、对比度、饱和度等参数。",
+      "实时预览调节效果。",
+      "点击「下载」保存处理后的图片。",
+    ],
+  },
+  {
+    id: "image-to-pdf", name: "图片转 PDF", desc: "图片合并为 PDF",
+    category: "image", requiresFileLimit: false, icon: "merge", group: "图片工具",
+    intro: "在线图片转 PDF 工具，可将多张图片按顺序合并为一个 PDF 文件，每张图片作为一页，支持调整页面尺寸和图片质量。",
+    usage: [
+      "上传一张或多张图片文件。",
+      "拖拽调整图片顺序。",
+      "选择输出页面尺寸（A4 / 原始尺寸）。",
+      "点击「生成 PDF」按钮下载文件。",
+    ],
+  },
   // ===== 编码解码 =====
   {
     id: "json-format", name: "JSON 格式化", desc: "美化 / 压缩 / 校验 JSON",
@@ -184,14 +394,24 @@ export const TOOLS: ToolDef[] = [
     tips: ["MD5 已不推荐用于安全场景，建议使用 SHA-256 及以上", "相同输入一定产生相同输出，适合做校验", "如果需要文件哈希，先将文件转为 Base64 再计算"],
   },
   {
-    id: "number-base", name: "进制转换", desc: "二 / 八 / 十 / 十六进制互转",
-    category: "util", requiresFileLimit: false, icon: "hex", group: "编码解码",
-    intro: "免费在线进制转换工具，支持二进制、八进制、十进制、十六进制之间的实时互转。适合程序员调试、网络地址计算、颜色值转换等开发场景，内置常用进制对照表方便查阅。",
+    id: "jwt-decode", name: "JWT 解码", desc: "解析 JWT Token",
+    category: "util", requiresFileLimit: false, icon: "lock", group: "编码解码",
+    intro: "在线 JWT 解码工具，可解析 JWT Token 的 Header、Payload 和 Signature 三部分，查看其中的声明和过期时间。",
     usage: [
-      "在输入框中输入数字。",
-      "从下拉框选择当前数字的进制。",
-      "其他进制的结果自动实时显示。",
-      "点击任意结果可复制对应进制的数值。",
+      "在输入框中粘贴完整的 JWT Token 字符串。",
+      "系统自动解析并展示 Header、Payload 和 Signature。",
+      "查看 Payload 中的用户信息和过期时间。",
+    ],
+  },
+  {
+    id: "number-base", name: "进制转换", desc: "二进制 / 八进制 / 十进制 / 十六进制互转",
+    category: "util", requiresFileLimit: false, icon: "hash", group: "编码解码",
+    intro: "在线进制转换工具，支持二进制、八进制、十进制、十六进制之间的实时互转，输入即时刷新，适合程序员调试和计算机基础学习。",
+    usage: [
+      "在任意进制输入框中输入数字。",
+      "其他进制的值实时同步转换更新。",
+      "支持超大整数转换，无精度丢失。",
+      "点击任意结果可一键复制。",
     ],
   },
 
@@ -226,7 +446,82 @@ export const TOOLS: ToolDef[] = [
       "在正则表达式输入框中输入要测试的模式（不需要两侧的 / 分隔符）。",
       "在测试文本框中输入要匹配的文本。",
       "匹配结果实时高亮显示，捕获组单独列出。",
-      "常用正则模板可快速填充，如邮箱、手机号、URL 等。",
+"常用正则模板可快速填充，如邮箱、手机号、URL 等。",
+    ],
+  },
+  {
+    id: "uuid", name: "UUID 生成器", desc: "生成唯一标识符",
+    category: "util", requiresFileLimit: false, icon: "dice", group: "开发调试",
+    intro: "在线 UUID 生成工具，可批量生成符合 RFC 4122 标准的 UUID v4 随机标识符，支持一键复制。",
+    usage: [
+      "选择生成数量（1-100 个）。",
+      "选择格式（带横线 / 纯数字 / 大写）。",
+      "点击「生成」按钮。",
+      "复制单个或全部 UUID。",
+    ],
+  },
+  {
+    id: "mock-data", name: "Mock 数据生成", desc: "生成测试数据",
+    category: "util", requiresFileLimit: false, icon: "dice", group: "开发调试",
+    intro: "在线 Mock 数据生成工具，可批量生成模拟数据（姓名、邮箱、手机号、地址、日期、数字等），用于前端开发和 API 测试。",
+    usage: [
+      "选择需要生成的数据类型和字段。",
+      "设置生成数量。",
+      "点击「生成」按钮。",
+      "结果支持 JSON / CSV / SQL 格式导出。",
+    ],
+  },
+  {
+    id: "crontab", name: "Crontab 表达式", desc: "解析 / 生成定时任务",
+    category: "util", requiresFileLimit: false, icon: "clock", group: "开发调试",
+    intro: "在线 Crontab 表达式解析与生成工具，可将 Cron 表达式翻译成人类可读的执行时间描述，也可通过可视化选择生成 Cron 表达式。",
+    usage: [
+      "输入 Cron 表达式（如 0 9 * * 1-5）解析执行时间。",
+      "或通过可视化选择（分钟 / 小时 / 日期 / 月份 / 星期）生成表达式。",
+      "查看人类可读的执行描述。",
+    ],
+  },
+  {
+    id: "sql-format", name: "SQL 格式化", desc: "美化 SQL 语句",
+    category: "util", requiresFileLimit: false, icon: "code", group: "开发调试",
+    intro: "在线 SQL 格式化工具，可将压缩的 SQL 语句美化缩进，支持多种数据库方言。",
+    usage: [
+      "在输入框中粘贴 SQL 语句。",
+      "选择数据库方言。",
+      "点击「格式化」按钮。",
+      "复制美化后的 SQL。",
+    ],
+  },
+  {
+    id: "user-agent", name: "User-Agent 解析", desc: "解析浏览器 UA 信息",
+    category: "util", requiresFileLimit: false, icon: "search", group: "开发调试",
+    intro: "在线 User-Agent 解析工具，可解析浏览器和设备的 User-Agent 字符串，提取操作系统、浏览器版本、设备类型等信息。",
+    usage: [
+      "粘贴 User-Agent 字符串到输入框。",
+      "系统自动解析并展示浏览器、操作系统、设备等信息。",
+      "支持常见 UA 模板快速填充。",
+    ],
+  },
+  {
+    id: "htaccess", name: ".htaccess 生成器", desc: "生成 Apache 配置",
+    category: "util", requiresFileLimit: false, icon: "code", group: "开发调试",
+    intro: "在线 .htaccess 文件生成工具，可视化配置 Apache 服务器的重写规则、缓存策略、防盗链、Gzip 压缩等常用设置。",
+    usage: [
+      "选择需要的功能模块（重写 / 缓存 / 压缩 / 安全）。",
+      "填写配置参数。",
+      "预览生成的 .htaccess 内容。",
+      "点击「复制」或「下载」获取文件。",
+    ],
+  },
+  {
+    id: "css-gradient", name: "CSS 渐变生成器", desc: "线性 / 径向渐变",
+    category: "util", requiresFileLimit: false, icon: "palette", group: "开发调试",
+    intro: "在线 CSS 渐变生成器，可视化设计线性渐变和径向渐变，实时预览效果并生成 CSS 代码，支持多种颜色停止点和角度调节。",
+    usage: [
+      "选择渐变类型（线性 / 径向）。",
+      "添加颜色停止点并调节位置。",
+      "设置渐变角度或中心点。",
+      "复制生成的 CSS 代码。",
     ],
   },
 
@@ -253,6 +548,17 @@ export const TOOLS: ToolDef[] = [
       "点击中间 ⇅ 按钮可快速交换源单位和目标单位。",
     ],
     tips: ["温度换算有特殊公式（非线性），与长度/重量的比例换算不同", "支持华氏度 °F ↔ 摄氏度 °C ↔ 开尔文 K", "所有换算基于国际标准单位制"],
+  },
+  {
+    id: "text-compare", name: "文本对比", desc: "比较两段文本差异",
+    category: "util", requiresFileLimit: false, icon: "type", group: "文本处理",
+    intro: "在线文本差异对比工具，可高亮显示两段文本之间的增删改差异，支持行级和字符级对比，适合代码审查和文档校对。",
+    usage: [
+      "在左右两个输入框中分别粘贴两段文本。",
+      "点击「对比」按钮。",
+      "系统高亮显示差异：绿色为新增，红色为删除。",
+      "支持一键复制差异结果。",
+    ],
   },
 
   // ===== 实用工具 =====
@@ -368,7 +674,9 @@ export const TOOLS: ToolDef[] = [
 ];
 
 export function getToolHref(t: ToolDef): string {
-  return t.category === "pdf" ? `/pdf-${t.id}` : `/util-${t.id}`;
+  if (t.category === "pdf") return t.id.startsWith("pdf-") ? `/${t.id}` : `/pdf-${t.id}`;
+  if (t.category === "image") return `/${t.id}`;
+  return `/util-${t.id}`;
 }
 
 export const TOOL_MAP: Record<string, ToolDef> = Object.fromEntries(TOOLS.map((t) => [t.id, t]));
@@ -381,9 +689,11 @@ export const TOOL_IDS = TOOLS.map((t) => t.id);
 
 export const PDF_TOOLS = TOOLS.filter((t) => t.category === "pdf");
 export const UTIL_TOOLS = TOOLS.filter((t) => t.category === "util");
+export const IMAGE_TOOLS = TOOLS.filter((t) => t.category === "image");
 
 export const TOOL_GROUPS = [
   "PDF 工具",
+  "图片工具",
   "编码解码",
   "开发调试",
   "文本处理",

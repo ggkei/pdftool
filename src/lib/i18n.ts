@@ -93,8 +93,8 @@ export const homeT = {
     utilBadge: "Completely Free",
     toolCardCta: "Get Started",
     footer: {
-      brand: "Pure Frontend · Zero Upload",
-      slogan: "Your browser alone guards your data security",
+      brand: "纯前端架构 · 文件零上传",
+      slogan: "数据安全由你的浏览器全权守护",
       icp: "粤ICP备2026125632号",
       police: "粤公网安备44030002016475号",
     },
@@ -120,6 +120,7 @@ export const homeT = {
 // Tool group names translation
 export const groupT: Record<string, { zh: string; en: string }> = {
   "PDF 工具": { zh: "PDF 工具", en: "PDF Tools" },
+  "图片工具": { zh: "图片工具", en: "Image Tools" },
   "编码解码": { zh: "编码解码", en: "Encoding & Decoding" },
   "开发调试": { zh: "开发调试", en: "Dev & Debug" },
   "文本处理": { zh: "文本处理", en: "Text Processing" },
@@ -164,6 +165,39 @@ export const toolNameT: Record<string, { zh: string; en: string }> = {
   password: { zh: "密码生成器", en: "Password Generator" },
   random: { zh: "随机数生成", en: "Random Number" },
   "cn-idcard": { zh: "身份证验证", en: "ID Card Validator" },
+  // PDF (additional)
+  "delete-page": { zh: "PDF 删除页面", en: "Delete Pages" },
+  "add-page-numbers": { zh: "PDF 添加页码", en: "Add Page Numbers" },
+  "metadata": { zh: "PDF 信息查看", en: "PDF Metadata" },
+  "protect": { zh: "PDF 加密", en: "Encrypt PDF" },
+  "unlock": { zh: "PDF 解密", en: "Decrypt PDF" },
+  // Image Tools
+  "id-photo": { zh: "证件照制作", en: "ID Photo Maker" },
+  "image-ocr": { zh: "图片 OCR 识别", en: "Image OCR" },
+  "image-compress": { zh: "图片压缩", en: "Compress Image" },
+  "image-resize": { zh: "图片缩放", en: "Resize Image" },
+  "image-convert": { zh: "图片格式转换", en: "Convert Image" },
+  "image-rotate": { zh: "图片旋转", en: "Rotate Image" },
+  "image-base64": { zh: "图片 Base64", en: "Image Base64" },
+  "image-watermark": { zh: "图片加水印", en: "Image Watermark" },
+  "image-crop": { zh: "图片裁剪", en: "Crop Image" },
+  "image-filter": { zh: "图片滤镜", en: "Image Filter" },
+  "image-mosaic": { zh: "图片马赛克", en: "Image Mosaic" },
+  "image-info": { zh: "图片信息", en: "Image Info" },
+  "image-beautify": { zh: "图片美化", en: "Beautify Image" },
+  "image-to-pdf": { zh: "图片转 PDF", en: "Image to PDF" },
+  // Encoding (additional)
+  "jwt-decode": { zh: "JWT 解码", en: "JWT Decoder" },
+  // Dev (additional)
+  "uuid": { zh: "UUID 生成器", en: "UUID Generator" },
+  "mock-data": { zh: "Mock 数据生成", en: "Mock Data" },
+  "crontab": { zh: "Crontab 表达式", en: "Crontab Parser" },
+  "sql-format": { zh: "SQL 格式化", en: "SQL Formatter" },
+  "user-agent": { zh: "User-Agent 解析", en: "UA Parser" },
+  "htaccess": { zh: ".htaccess 生成器", en: ".htaccess Generator" },
+  "css-gradient": { zh: "CSS 渐变生成器", en: "CSS Gradient" },
+  // Text (additional)
+  "text-compare": { zh: "文本对比", en: "Text Compare" },
   // Life
   mortgage: { zh: "房贷计算器", en: "Mortgage Calculator" },
   currency: { zh: "汇率兑换", en: "Currency Converter" },
@@ -201,6 +235,39 @@ export const toolDescT: Record<string, { zh: string; en: string }> = {
   currency: { zh: "实时汇率换算", en: "Real-time exchange rates" },
   "world-time": { zh: "全球主要城市时钟", en: "Clocks for major cities" },
   bmi: { zh: "身体质量指数", en: "Body mass index" },
+  // PDF (additional)
+  "delete-page": { zh: "删除指定页面", en: "Delete specific pages" },
+  "add-page-numbers": { zh: "批量添加页码", en: "Batch add page numbers" },
+  "metadata": { zh: "查看 / 编辑元数据", en: "View / edit metadata" },
+  "protect": { zh: "设置密码保护", en: "Set password protection" },
+  "unlock": { zh: "移除密码保护", en: "Remove password" },
+  // Image Tools
+  "id-photo": { zh: "AI 自动抠图换背景", en: "AI auto cutout & background" },
+  "image-ocr": { zh: "图片转文字", en: "Image to text" },
+  "image-compress": { zh: "减小图片体积", en: "Reduce image size" },
+  "image-resize": { zh: "调整图片尺寸", en: "Adjust image size" },
+  "image-convert": { zh: "JPG / PNG / WebP 互转", en: "JPG / PNG / WebP converter" },
+  "image-rotate": { zh: "旋转 / 翻转图片", en: "Rotate / flip image" },
+  "image-base64": { zh: "图片与 Base64 互转", en: "Image ↔ Base64" },
+  "image-watermark": { zh: "给图片添加水印", en: "Add watermark to image" },
+  "image-crop": { zh: "裁剪图片区域", en: "Crop image area" },
+  "image-filter": { zh: "应用滤镜效果", en: "Apply filter effects" },
+  "image-mosaic": { zh: "局部马赛克 / 模糊", en: "Local mosaic / blur" },
+  "image-info": { zh: "查看图片详细信息", en: "View image details" },
+  "image-beautify": { zh: "亮度 / 对比度 / 饱和度", en: "Brightness / contrast / saturation" },
+  "image-to-pdf": { zh: "图片合并为 PDF", en: "Merge images to PDF" },
+  // Encoding (additional)
+  "jwt-decode": { zh: "解析 JWT Token", en: "Parse JWT token" },
+  // Dev (additional)
+  "uuid": { zh: "生成唯一标识符", en: "Generate unique IDs" },
+  "mock-data": { zh: "生成测试数据", en: "Generate test data" },
+  "crontab": { zh: "解析 / 生成定时任务", en: "Parse / generate cron jobs" },
+  "sql-format": { zh: "美化 SQL 语句", en: "Beautify SQL" },
+  "user-agent": { zh: "解析浏览器 UA 信息", en: "Parse browser UA" },
+  "htaccess": { zh: "生成 Apache 配置", en: "Generate Apache config" },
+  "css-gradient": { zh: "线性 / 径向渐变", en: "Linear / radial gradients" },
+  // Text (additional)
+  "text-compare": { zh: "比较两段文本差异", en: "Compare text differences" },
   period: { zh: "预测经期 / 排卵期 / 安全期", en: "Predict period / ovulation / safe days" },
 };
 

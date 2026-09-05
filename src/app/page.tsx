@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { PrivacyBadge } from "@/components/PrivacyBadge";
-import { TOOLS, TOOL_GROUPS, PDF_TOOLS, UTIL_TOOLS } from "@/lib/tools";
-import { getLocaleFromHostname, homeT, groupT, tagT, toolName, toolDesc, type Locale } from "@/lib/i18n";
+import { TOOLS, TOOL_GROUPS, PDF_TOOLS, IMAGE_TOOLS, UTIL_TOOLS } from "@/lib/tools";
+import { createT as makeT, getLocaleFromSearchParams } from "@/i18n/dictionary";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+
+interface PageProps {
+  searchParams?: { lang?: string };
+}
 
 interface ToolItem {
-  id: string;
   title: string;
   description: string;
   href: string;
@@ -20,11 +23,16 @@ const STATIC_EXTRAS: Record<string, { href: string; tag?: string; featured?: boo
   split: { href: "/pdf-split" },
   rotate: { href: "/pdf-rotate" },
   watermark: { href: "/pdf-watermark" },
-  "remove-watermark": { href: "/pdf-remove-watermark", tag: "热门", featured: true },
+  "remove-watermark": { href: "/pdf-remove-watermark", tag: "home.hot_tag", featured: true },
   "extract-image": { href: "/pdf-extract-image" },
   compress: { href: "/pdf-compress" },
   "to-image": { href: "/pdf-to-image" },
   ocr: { href: "/pdf-ocr" },
+  "delete-page": { href: "/pdf-delete-page" },
+  "add-page-numbers": { href: "/pdf-add-page-numbers" },
+  protect: { href: "/pdf-protect" },
+  unlock: { href: "/pdf-unlock" },
+  metadata: { href: "/pdf-metadata" },
   "json-format": { href: "/util-json-format" },
   base64: { href: "/util-base64" },
   "url-encode": { href: "/util-url-encode" },
@@ -34,10 +42,10 @@ const STATIC_EXTRAS: Record<string, { href: string; tag?: string; featured?: boo
   regex: { href: "/util-regex" },
   "text-tools": { href: "/util-text-tools" },
   "unit-convert": { href: "/util-unit-convert" },
-  qrcode: { href: "/util-qrcode", tag: "免费" },
+  qrcode: { href: "/util-qrcode", tag: "home.free_tag" },
   password: { href: "/util-password" },
   random: { href: "/util-random" },
-  mortgage: { href: "/util-mortgage", tag: "实用" },
+  mortgage: { href: "/util-mortgage", tag: "home.practical_tag" },
   currency: { href: "/util-currency" },
   "world-time": { href: "/util-world-time" },
   bmi: { href: "/util-bmi" },
@@ -46,19 +54,7 @@ const STATIC_EXTRAS: Record<string, { href: string; tag?: string; featured?: boo
   period: { href: "/util-period" },
 };
 
-const tools: ToolItem[] = TOOLS.map((t) => {
-  const extra = STATIC_EXTRAS[t.id] ?? { href: `/${t.id}` };
-  return {
-    id: t.id,
-    title: t.name,
-    description: t.desc,
-    href: extra.href,
-    icon: t.icon,
-    tag: extra.tag,
-    featured: extra.featured,
-    group: t.group,
-  };
-});
+// tools array is now built inside Home() to support runtime locale translation
 
 const ICON_PATHS: Record<string, React.ReactNode> = {
   merge: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 6h9a2 2 0 012 2v8a2 2 0 01-2 2H8m0-12H5a2 2 0 00-2 2v8a2 2 0 002 2h3m0-12v12" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M11 10l-2 2 2 2M14 14l2-2-2-2" /></>,
@@ -97,40 +93,34 @@ function ToolIcon({ name }: { name: string }) {
   );
 }
 
-function translateTag(tag: string, locale: Locale): string {
-  return tagT[tag]?.[locale] ?? tag;
-}
-
-function translateGroup(group: string, locale: Locale): string {
-  return groupT[group]?.[locale] ?? group;
-}
-
-function ToolCard({ tool, index, locale }: { tool: ToolItem; index: number; locale: Locale }) {
-  const dict = homeT[locale];
+function ToolCard({ tool, index, t: tt }: { tool: ToolItem; index: number; t: (key: string) => string }) {
   return (
     <Link
       href={tool.href}
-      className="card card-hover group relative overflow-hidden"
+      className="card-elite group relative overflow-hidden"
       style={{ animationDelay: `${index * 30}ms` }}
     >
       {tool.tag && (
-        <span className={`absolute right-3 top-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tool.tag === "热门" ? "bg-brand-100 text-brand-700" : "bg-emerald-100 text-emerald-700"}`}>
+        <span className={`absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tool.tag === "home.hot_tag" ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-sm" : "bg-emerald-100 text-emerald-700"}`}>
           <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          {translateTag(tool.tag, locale)}
+          {tt(tool.tag)}
         </span>
       )}
 
-      <div className="p-5">
-        <div className="mb-3.5 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-all duration-300 group-hover:bg-brand-600 group-hover:text-white group-hover:shadow-glow">
+      {/* Hover gradient overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-50/0 to-brand-50/0 opacity-0 transition-opacity duration-300 group-hover:from-brand-50/50 group-hover:to-transparent group-hover:opacity-100" />
+
+      <div className="relative p-5">
+        <div className="mb-3.5 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-50 to-brand-100 text-brand-600 transition-all duration-300 group-hover:from-brand-600 group-hover:to-brand-500 group-hover:text-white group-hover:shadow-glow group-hover:scale-110">
           <ToolIcon name={tool.icon} />
         </div>
-        <h3 className="mb-1 text-[15px] font-semibold text-zinc-900 group-hover:text-brand-700 transition-colors">
-          {toolName(tool.id, locale)}
+        <h3 className="mb-1 text-[15px] font-semibold text-zinc-900 transition-colors group-hover:text-brand-700">
+          {tool.title}
         </h3>
-        <p className="text-[13px] leading-relaxed text-zinc-500">{toolDesc(tool.id, locale)}</p>
+        <p className="text-[13px] leading-relaxed text-zinc-500">{tool.description}</p>
 
-        <div className="mt-3 flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
-          {dict.toolCardCta}
+        <div className="mt-3 flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
+          {tt("home.start_using")}
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
@@ -140,40 +130,64 @@ function ToolCard({ tool, index, locale }: { tool: ToolItem; index: number; loca
   );
 }
 
-export default async function Home() {
-  const host = headers().get("host") || "";
-  const locale = getLocaleFromHostname(host);
-  const dict = homeT[locale];
-  const extraTools = UTIL_TOOLS.length;
+function groupToI18nKey(groupIndex: number): string {
+  const keys = [
+    "home.category_pdf",
+    "home.category_image",
+    "home.group_encoding",
+    "home.group_dev",
+    "home.group_text",
+    "home.group_util",
+    "home.group_life",
+  ];
+  return keys[groupIndex] || "home.category_util";
+}
+
+export default function Home({ searchParams }: PageProps) {
+  const locale = getLocaleFromSearchParams(searchParams);
+  const tt = makeT(locale);
+  const langQuery = locale === "en" ? "?lang=en" : "";
+
+  // Build tools array with runtime-translated names/descriptions
+  const tools: ToolItem[] = TOOLS.map((t) => {
+    const extra = STATIC_EXTRAS[t.id] ?? { href: `/${t.id}` };
+    return {
+      title: tt(`tools.${t.id}.name`),
+      description: tt(`tools.${t.id}.desc`),
+      href: extra.href + langQuery,
+      icon: t.icon,
+      tag: extra.tag,
+      featured: extra.featured,
+      group: t.group,
+    };
+  });
 
   const groupedTools: Record<string, ToolItem[]> = {};
-  for (const t of tools) {
-    (groupedTools[t.group] = groupedTools[t.group] || []).push(t);
+  for (const toolItem of tools) {
+    (groupedTools[toolItem.group] = groupedTools[toolItem.group] || []).push(toolItem);
   }
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-14 sm:py-20">
       {/* Hero */}
       <section className="mb-14 text-center animate-fade-in">
-        <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/80 px-4 py-1.5 text-xs font-medium text-brand-700 backdrop-blur shadow-soft">
+        <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-brand-200/60 bg-white/80 px-4 py-1.5 text-xs font-medium text-brand-700 backdrop-blur-md shadow-soft">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500" />
           </span>
-          {dict.badge.replace("{count}", String(TOOLS.length))}
+          {tt("home.tools_ready").replace("{n}", String(TOOLS.length))}
         </div>
 
         <h1 className="font-display text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl text-balance">
-          {dict.heroTitle}
-          <span className="block bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400 bg-clip-text text-transparent">
-            {dict.heroSubtitle}
+          {tt("home.main_title")}
+          <span className="mt-2 block bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400 bg-clip-text text-transparent" style={{ backgroundSize: "200% auto" }}>
+            {tt("home.sub_title")}
           </span>
         </h1>
 
-        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-500 sm:text-lg text-balance">
-          {dict.heroDesc}
-          <span className="font-medium text-zinc-700"> {dict.heroDescHighlight}</span>
-          {dict.heroDescSuffix.replace("{extra}", String(extraTools))}
+        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-500 sm:text-lg text-balance">
+          {tt("home.description")}
         </p>
       </section>
 
@@ -186,29 +200,31 @@ export default async function Home() {
       {TOOL_GROUPS.map((groupKey, gi) => {
         const groupTools = groupedTools[groupKey];
         if (!groupTools || groupTools.length === 0) return null;
-        const isPdf = groupKey === "PDF 工具";
-        const translatedGroup = translateGroup(groupKey, locale);
+        const isPdf = gi === 0;
+        const isImage = gi === 1;
         return (
-          <section key={groupKey} className="mb-12 animate-slide-up" style={{ animationDelay: `${240 + gi * 60}ms` }}>
+          <section key={gi} className="mb-12 animate-slide-up" style={{ animationDelay: `${240 + gi * 60}ms` }}>
             <div className="mb-5 flex items-end justify-between">
               <div>
-                <h2 className="font-display text-xl font-semibold text-zinc-900 sm:text-2xl">
-                  {translatedGroup}
+                <h2 className="font-display text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">
+                  {tt(groupToI18nKey(gi))}
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500">
                   {isPdf
-                    ? dict.pdfSectionSubtitle.replace("{count}", String(PDF_TOOLS.length))
-                    : dict.utilSectionSubtitle.replace("{count}", String(groupTools.length))}
+                    ? tt("home.pdf_tools_desc").replace("{n}", String(PDF_TOOLS.length))
+                    : isImage
+                    ? tt("home.image_tools_desc").replace("{n}", String(IMAGE_TOOLS.length))
+                    : tt("home.util_tools_desc").replace("{n}", String(groupTools.length))}
                 </p>
               </div>
-              <span className={`hidden rounded-full px-3 py-1 text-xs font-medium sm:inline-block ${isPdf ? "bg-brand-50 text-brand-600" : "bg-emerald-50 text-emerald-600"}`}>
-                {isPdf ? dict.pdfBadge : dict.utilBadge}
+              <span className={`hidden rounded-full px-3 py-1 text-xs font-medium ring-1 sm:inline-block ${isPdf ? "bg-brand-50 text-brand-600 ring-brand-200/50" : isImage ? "bg-violet-50 text-violet-600 ring-violet-200/50" : "bg-emerald-50 text-emerald-600 ring-emerald-200/50"}`}>
+                {isPdf ? tt("home.unlock_advanced") : tt("home.free_label")}
               </span>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {groupTools.map((tool, i) => (
-                <ToolCard key={tool.href} tool={tool} index={i} locale={locale} />
+                <ToolCard key={tool.href} tool={tool} index={i} t={tt} />
               ))}
             </div>
           </section>
@@ -216,35 +232,27 @@ export default async function Home() {
       })}
 
       {/* Footer */}
-      <footer className="mt-20 border-t border-slate-200/70 pt-8 text-center">
+      <footer className="mt-20 border-t border-slate-200/70 pt-8 pb-8 text-center">
         <div className="mx-auto max-w-md">
           <p className="text-xs text-zinc-400">
-            &copy; {new Date().getFullYear()} AtoolX · {dict.footer.brand}
+            &copy; {new Date().getFullYear()} AtoolX &middot; {tt("footer.brand_tagline")}
           </p>
           <p className="mt-1 text-[11px] text-zinc-400">
-            {dict.footer.slogan}
+            {tt("footer.privacy_guard")}
           </p>
-          {locale === "zh" && (
-            <p className="mt-1 text-[11px] text-zinc-400">
-              <a
-                href="https://beian.miit.gov.cn/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-zinc-500 transition-colors"
-              >
-                {dict.footer.icp}
-              </a>
-              {" · "}
-              <a
-                href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030002016475"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-zinc-500 transition-colors"
-              >
-                {dict.footer.police}
-              </a>
-            </p>
-          )}
+          <p className="mt-2 text-[11px] text-zinc-400">
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-zinc-600 transition-colors"
+            >
+              {tt("footer.icp")}
+            </a>
+          </p>
+          <div className="mt-4 flex justify-center">
+            <LanguageSwitcher />
+          </div>
         </div>
       </footer>
     </main>
