@@ -97,6 +97,7 @@ export const DICTIONARY: Record<string, DictEntry> = {
   "footer.contact": { zh: "联系我们", en: "Contact" },
   "footer.copyright": { zh: "版权所有", en: "All rights reserved" },
   "footer.icp": { zh: "粤ICP备2026125632号", en: "粤ICP备2026125632号" },
+  "footer.police": { zh: "粤公网安备44030002016475号", en: "粤公网安备44030002016475号" },
 
   // ===== PDF Tool: Protect =====
   "pdf_protect.drag_hint": { zh: "拖拽 PDF 到此处，或点击上传", en: "Drag & drop PDF here, or click to upload" },
@@ -2314,6 +2315,14 @@ export const DICTIONARY: Record<string, DictEntry> = {
   "tools.pdf-metadata.usage_1": { zh: "系统自动显示元数据信息。", en: "The system automatically displays metadata." },
   "tools.pdf-metadata.usage_2": { zh: "查看基本属性和详细信息。", en: "View basic properties and detailed info." },
 
+  // ===== Tool: metadata =====
+  "tools.metadata.name": { zh: "PDF 信息查看", en: "PDF Metadata Viewer" },
+  "tools.metadata.desc": { zh: "查看 / 编辑元数据", en: "View / edit metadata" },
+  "tools.metadata.intro": { zh: "在线 PDF 元数据查看工具，显示 PDF 文件的基本信息（标题、作者、创建时间等）和详细信息（页数、尺寸、加密状态等）。", en: "Online PDF metadata viewer. Displays basic info (title, author, creation date) and detailed info (page count, dimensions, encryption status)." },
+  "tools.metadata.usage_0": { zh: "上传 PDF 文件。", en: "Upload a PDF file." },
+  "tools.metadata.usage_1": { zh: "系统自动显示元数据信息。", en: "The system automatically displays metadata." },
+  "tools.metadata.usage_2": { zh: "查看基本属性和详细信息。", en: "View basic properties and detailed info." },
+
   // ===== Tool: pdf-protect =====
   "tools.pdf-protect.name": { zh: "PDF 加密", en: "PDF Protect" },
   "tools.pdf-protect.desc": { zh: "设置密码保护", en: "Set password protection" },
@@ -2325,6 +2334,17 @@ export const DICTIONARY: Record<string, DictEntry> = {
   "tools.pdf-protect.tip_0": { zh: "请妥善保管密码，遗忘后无法恢复", en: "Please keep your password safe; it cannot be recovered if forgotten" },
   "tools.pdf-protect.tip_1": { zh: "权限密码限制操作但不限制打开", en: "Permission password restricts actions but not opening" },
 
+  // ===== Tool: protect =====
+  "tools.protect.name": { zh: "PDF 加密", en: "PDF Protect" },
+  "tools.protect.desc": { zh: "设置密码保护", en: "Set password protection" },
+  "tools.protect.intro": { zh: "在线 PDF 加密工具，为 PDF 文件设置打开密码和权限密码。支持限制打印、复制、编辑等操作。", en: "Online PDF encryption tool. Set open and permission passwords for PDF files. Supports restricting printing, copying, and editing." },
+  "tools.protect.usage_0": { zh: "上传 PDF 文件。", en: "Upload a PDF file." },
+  "tools.protect.usage_1": { zh: "设置打开密码（可选）和权限密码。", en: "Set an open password (optional) and a permission password." },
+  "tools.protect.usage_2": { zh: "选择权限限制（禁止打印/复制/编辑）。", en: "Select permission restrictions (no print/copy/edit)." },
+  "tools.protect.usage_3": { zh: "点击「加密」，下载加密后的 PDF。", en: "Click \"Encrypt\" and download the encrypted PDF." },
+  "tools.protect.tip_0": { zh: "请妥善保管密码，遗忘后无法恢复", en: "Please keep your password safe; it cannot be recovered if forgotten" },
+  "tools.protect.tip_1": { zh: "权限密码限制操作但不限制打开", en: "Permission password restricts actions but not opening" },
+
   // ===== Tool: pdf-unlock =====
   "tools.pdf-unlock.name": { zh: "PDF 解密", en: "PDF Unlock" },
   "tools.pdf-unlock.desc": { zh: "移除密码保护", en: "Remove password protection" },
@@ -2334,6 +2354,16 @@ export const DICTIONARY: Record<string, DictEntry> = {
   "tools.pdf-unlock.usage_2": { zh: "点击「解密」，下载解密后的 PDF。", en: "Click \"Unlock\" and download the unlocked PDF." },
   "tools.pdf-unlock.tip_0": { zh: "需要知道正确密码才能解密", en: "The correct password is required to unlock" },
   "tools.pdf-unlock.tip_1": { zh: "无法破解未知密码的 PDF", en: "Cannot crack PDFs with unknown passwords" },
+
+  // ===== Tool: unlock =====
+  "tools.unlock.name": { zh: "PDF 解密", en: "PDF Unlock" },
+  "tools.unlock.desc": { zh: "移除密码保护", en: "Remove password protection" },
+  "tools.unlock.intro": { zh: "在线 PDF 解密工具，移除 PDF 文件的密码保护。需要输入正确的密码才能解密。", en: "Online PDF unlock tool. Removes password protection from PDF files. The correct password is required to unlock." },
+  "tools.unlock.usage_0": { zh: "上传加密的 PDF 文件。", en: "Upload an encrypted PDF file." },
+  "tools.unlock.usage_1": { zh: "输入正确的密码。", en: "Enter the correct password." },
+  "tools.unlock.usage_2": { zh: "点击「解密」，下载解密后的 PDF。", en: "Click \"Unlock\" and download the unlocked PDF." },
+  "tools.unlock.tip_0": { zh: "需要知道正确密码才能解密", en: "The correct password is required to unlock" },
+  "tools.unlock.tip_1": { zh: "无法破解未知密码的 PDF", en: "Cannot crack PDFs with unknown passwords" },
 
   // ===== Tool: uuid =====
   "tools.uuid.name": { zh: "UUID 生成器", en: "UUID Generator" },

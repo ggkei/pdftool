@@ -36,7 +36,7 @@ export default function UtilTextDiffPage() {
     setDiff(result);
   };
 
-  const tool = getToolById("text-compare")!;
+  const tool = getToolById("text-diff")!;
 
   const addCount = diff?.filter((d) => d.type === "add").length ?? 0;
   const removeCount = diff?.filter((d) => d.type === "remove").length ?? 0;

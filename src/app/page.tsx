@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PrivacyBadge } from "@/components/PrivacyBadge";
-import { TOOLS, TOOL_GROUPS, PDF_TOOLS, IMAGE_TOOLS, UTIL_TOOLS } from "@/lib/tools";
+import { TOOLS, TOOL_GROUPS, PDF_TOOLS, IMAGE_TOOLS, UTIL_TOOLS, getToolHref } from "@/lib/tools";
 import { createT as makeT, getLocaleFromSearchParams } from "@/i18n/dictionary";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
@@ -150,7 +150,7 @@ export default function Home({ searchParams }: PageProps) {
 
   // Build tools array with runtime-translated names/descriptions
   const tools: ToolItem[] = TOOLS.map((t) => {
-    const extra = STATIC_EXTRAS[t.id] ?? { href: `/${t.id}` };
+    const extra = STATIC_EXTRAS[t.id] ?? { href: getToolHref(t) };
     return {
       title: tt(`tools.${t.id}.name`),
       description: tt(`tools.${t.id}.desc`),
@@ -248,6 +248,15 @@ export default function Home({ searchParams }: PageProps) {
               className="hover:text-zinc-600 transition-colors"
             >
               {tt("footer.icp")}
+            </a>
+            {" · "}
+            <a
+              href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030002016475"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-zinc-600 transition-colors"
+            >
+              {tt("footer.police")}
             </a>
           </p>
           <div className="mt-4 flex justify-center">

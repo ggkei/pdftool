@@ -514,7 +514,7 @@ export const TOOLS: ToolDef[] = [
     ],
   },
   {
-    id: "css-gradient", name: "CSS 渐变生成器", desc: "线性 / 径向渐变",
+    id: "gradient", name: "CSS 渐变生成器", desc: "线性 / 径向渐变",
     category: "util", requiresFileLimit: false, icon: "palette", group: "开发调试",
     intro: "在线 CSS 渐变生成器，可视化设计线性渐变和径向渐变，实时预览效果并生成 CSS 代码，支持多种颜色停止点和角度调节。",
     usage: [
@@ -550,7 +550,7 @@ export const TOOLS: ToolDef[] = [
     tips: ["温度换算有特殊公式（非线性），与长度/重量的比例换算不同", "支持华氏度 °F ↔ 摄氏度 °C ↔ 开尔文 K", "所有换算基于国际标准单位制"],
   },
   {
-    id: "text-compare", name: "文本对比", desc: "比较两段文本差异",
+    id: "text-diff", name: "文本对比", desc: "比较两段文本差异",
     category: "util", requiresFileLimit: false, icon: "type", group: "文本处理",
     intro: "在线文本差异对比工具，可高亮显示两段文本之间的增删改差异，支持行级和字符级对比，适合代码审查和文档校对。",
     usage: [

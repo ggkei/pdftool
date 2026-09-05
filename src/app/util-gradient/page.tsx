@@ -51,7 +51,7 @@ export default function UtilGradientPage() {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const tool = getToolById("css-gradient")!;
+  const tool = getToolById("gradient")!;
 
   const presets = [
     { name: t("util_gradient.紫色渐变"), css: "linear-gradient(135deg, #7c3aed, #ec4899)" },
