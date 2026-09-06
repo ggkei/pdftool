@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import type { ToolDef } from "@/lib/tools";
 import { getToolHref, PDF_TOOLS, UTIL_TOOLS } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 export function ToolUsage({ tool }: { tool: ToolDef }) {
   const relatedGroup = tool.category === "pdf" ? PDF_TOOLS : UTIL_TOOLS;
@@ -18,7 +21,7 @@ export function ToolUsage({ tool }: { tool: ToolDef }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </span>
-          工具介绍
+          {t("common.tool_intro")}
         </h2>
         <p className="text-sm leading-relaxed text-zinc-600">{tool.intro}</p>
       </section>
@@ -31,7 +34,7 @@ export function ToolUsage({ tool }: { tool: ToolDef }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
           </span>
-          使用说明
+          {t("common.tool_usage")}
         </h2>
         <ol className="space-y-3">
           {tool.usage.map((step, i) => (
@@ -54,7 +57,7 @@ export function ToolUsage({ tool }: { tool: ToolDef }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </span>
-            小贴士
+            {t("common.tool_tips")}
           </h2>
           <ul className="space-y-2">
             {tool.tips.map((tip, i) => (
@@ -71,19 +74,19 @@ export function ToolUsage({ tool }: { tool: ToolDef }) {
 
       {/* 相关工具 */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900">相关工具</h2>
+        <h2 className="mb-4 text-lg font-semibold text-zinc-900">{t("common.related_tools")}</h2>
         <div className="flex flex-wrap gap-2">
-          {related.map((t) => (
+          {related.map((rt) => (
             <Link
-              key={t.id}
-              href={getToolHref(t)}
+              key={rt.id}
+              href={getToolHref(rt)}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                t.category === "pdf"
+                rt.category === "pdf"
                   ? "bg-brand-50 text-brand-700 hover:bg-brand-100"
                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
               }`}
             >
-              {t.name}
+              {t(`tools.${rt.id}.name`)}
             </Link>
           ))}
         </div>

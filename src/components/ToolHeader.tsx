@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PrivacyBadge } from "@/components/PrivacyBadge";
+import { t } from "@/i18n/dictionary";
 
 export function ToolHeader({
   title,
@@ -19,7 +20,7 @@ export function ToolHeader({
         <svg className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 19l-7-7 7-7" />
         </svg>
-        返回工具箱
+        {t("common.back_to_tools")}
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4">

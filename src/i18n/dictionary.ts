@@ -2529,6 +2529,11 @@ export const DICTIONARY: Record<string, DictEntry> = {
 
   "img_id_photo.error_matting": { zh: "抠图失败：{error}", en: "matting failed: {error}" },
   "img_id_photo.error_processing": { zh: "处理失败：{error}", en: "processing failed: {error}" },
+  "common.back_to_tools": { zh: "返回工具箱", en: "Back to Toolbox" },
+  "common.tool_intro": { zh: "工具介绍", en: "Introduction" },
+  "common.tool_usage": { zh: "使用说明", en: "Usage" },
+  "common.tool_tips": { zh: "小贴士", en: "Tips" },
+  "common.related_tools": { zh: "相关工具", en: "Related Tools" },
 
 };
 // Browser-side runtime locale detection (dev mode)

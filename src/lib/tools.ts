@@ -1,4 +1,6 @@
-﻿﻿﻿﻿export interface ToolDef {
+﻿﻿﻿import { t, buildLocale } from "@/i18n/dictionary";
+
+export interface ToolDef {
   id: string;
   name: string;
   desc: string;
@@ -682,7 +684,19 @@ export function getToolHref(t: ToolDef): string {
 export const TOOL_MAP: Record<string, ToolDef> = Object.fromEntries(TOOLS.map((t) => [t.id, t]));
 
 export function getToolById(id: string): ToolDef | undefined {
-  return TOOL_MAP[id];
+  const raw = TOOL_MAP[id];
+  if (!raw) return undefined;
+  const name = t(`tools.${id}.name`, buildLocale);
+  const desc = t(`tools.${id}.desc`, buildLocale);
+  const intro = t(`tools.${id}.intro`, buildLocale);
+  const group = t(`tools.${id}.group`, buildLocale);
+  return {
+    ...raw,
+    name: name !== `tools.${id}.name` ? name : raw.name,
+    desc: desc !== `tools.${id}.desc` ? desc : raw.desc,
+    intro: intro !== `tools.${id}.intro` ? intro : raw.intro,
+    group: group !== `tools.${id}.group` ? group : raw.group,
+  };
 }
 
 export const TOOL_IDS = TOOLS.map((t) => t.id);
