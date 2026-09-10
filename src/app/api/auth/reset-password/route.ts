@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, reason: "该邮箱未注册" }, { status: 400 });
   }
 
-  const codeResult = await verifyLoginCode(email, code, "reset");
+  const codeResult = await verifyLoginCode(email, code, "reset", "email");
   if (!codeResult.ok) {
     return NextResponse.json({ ok: false, reason: codeResult.reason || "验证码错误" }, { status: 400 });
   }

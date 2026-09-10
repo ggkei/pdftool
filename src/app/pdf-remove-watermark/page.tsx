@@ -7,6 +7,7 @@ import { useFileGuard } from "@/hooks/useFileGuard";
 import { FileGuardModal } from "@/components/FileGuardModal";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 interface ImageRow {
   ref: string;
@@ -79,7 +80,7 @@ export default function PdfRemoveWatermarkPage() {
     setFileName(file.name);
 
     if (!file.name.toLowerCase().endsWith(".pdf")) {
-      setError("请选择 PDF 文件");
+      setError(t("pdf_remove_watermark.error_no_pdf"));
       return;
     }
 
@@ -175,7 +176,7 @@ export default function PdfRemoveWatermarkPage() {
 
       const totalImages = pageData.reduce((sum, p) => sum + p.images.length, 0);
       if (totalImages === 0) {
-        setError("未在 PDF 中检测到图片对象。该文件可能不包含可识别的图片水印。");
+        setError(t("pdf_remove_watermark.error_no_images"));
       }
 
       setStep("select");
@@ -183,8 +184,8 @@ export default function PdfRemoveWatermarkPage() {
       console.error(err);
       setError(
         err instanceof Error
-          ? `解析失败: ${err.message}`
-          : "解析 PDF 时发生未知错误"
+          ? t("pdf_remove_watermark.parse_failed", { msg: err.message })
+          : t("pdf_remove_watermark.error_parse")
       );
       setStep("upload");
     }
@@ -267,8 +268,8 @@ export default function PdfRemoveWatermarkPage() {
       console.error(err);
       setError(
         err instanceof Error
-          ? `处理失败: ${err.message}`
-          : "处理水印时发生未知错误"
+          ? t("pdf_remove_watermark.process_failed", { msg: err.message })
+          : t("pdf_remove_watermark.error_process")
       );
       setStep("select");
     }
@@ -280,7 +281,7 @@ export default function PdfRemoveWatermarkPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = fileName.replace(/\.pdf$/i, "_无水印.pdf");
+    a.download = fileName.replace(/\.pdf$/i, t("pdf_remove_watermark.suffix"));
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -300,8 +301,8 @@ export default function PdfRemoveWatermarkPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <ToolHeader
-        title="PDF 去水印"
-        description="智能识别 PDF 中的图片水印并删除，适用于扫描全能王、夸克扫描王等生成的 PDF"
+        title={t("pdf_remove_watermark.title")}
+        description={t("pdf_remove_watermark.desc")}
       />
 
       {step === "upload" && (
@@ -311,7 +312,7 @@ export default function PdfRemoveWatermarkPage() {
       {step === "analyzing" && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-12">
           <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
-          <p className="text-lg font-medium text-slate-700">正在解析 PDF 文件...</p>
+          <p className="text-lg font-medium text-slate-700">{t("pdf_remove_watermark.parsing")}</p>
           <p className="mt-2 text-sm text-slate-500">{fileName}</p>
         </div>
       )}
@@ -321,9 +322,9 @@ export default function PdfRemoveWatermarkPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold">选择要删除的水印</h2>
+                <h2 className="text-lg font-semibold">{t("pdf_remove_watermark.select_title")}</h2>
                 <p className="text-sm text-slate-500">
-                  文件：{fileName} · 共 {pages.length} 页 · 已选择 {selectedCount} 张图片
+                  {t("pdf_remove_watermark.file_info", { fileName, pages: pages.length, selected: selectedCount })}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -331,13 +332,13 @@ export default function PdfRemoveWatermarkPage() {
                   onClick={() => toggleAll(true)}
                   className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                 >
-                  全选
+                  {t("pdf_remove_watermark.select_all")}
                 </button>
                 <button
                   onClick={() => toggleAll(false)}
                   className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                 >
-                  全不选
+                  {t("pdf_remove_watermark.select_none")}
                 </button>
               </div>
             </div>
@@ -355,14 +356,14 @@ export default function PdfRemoveWatermarkPage() {
                   className="rounded-lg border border-slate-200 p-4"
                 >
                   <h3 className="mb-3 text-sm font-semibold text-slate-700">
-                    第 {page.pageIndex + 1} 页
+                    {t("common.page_label", { page: page.pageIndex + 1 })}
                     <span className="ml-2 text-xs font-normal text-slate-400">
-                      ({page.images.length} 张图片)
+                      {t("pdf_remove_watermark.images_paren", { count: page.images.length })}
                     </span>
                   </h3>
 
                   {page.images.length === 0 ? (
-                    <p className="text-sm text-slate-400">未检测到图片</p>
+                    <p className="text-sm text-slate-400">{t("pdf_remove_watermark.no_images")}</p>
                   ) : (
                     <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                       {page.images.map((img) => (
@@ -384,14 +385,14 @@ export default function PdfRemoveWatermarkPage() {
               onClick={handleReset}
               className="rounded-lg border border-slate-300 bg-white px-6 py-3 text-slate-700 hover:bg-slate-50"
             >
-              重新上传
+              {t("pdf_remove_watermark.reupload")}
             </button>
             <button
               onClick={handleProcess}
               disabled={selectedCount === 0}
               className="rounded-lg bg-primary-600 px-8 py-3 font-medium text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              开始处理（删除 {selectedCount} 张图片）
+              {t("pdf_remove_watermark.process_remove", { count: selectedCount })}
             </button>
           </div>
 
@@ -404,8 +405,8 @@ export default function PdfRemoveWatermarkPage() {
       {step === "processing" && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-12">
           <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
-          <p className="text-lg font-medium text-slate-700">正在处理中...</p>
-          <p className="mt-2 text-sm text-slate-500">请稍候</p>
+          <p className="text-lg font-medium text-slate-700">{t("common.processing_step")}</p>
+          <p className="mt-2 text-sm text-slate-500">{t("pdf_remove_watermark.please_wait")}</p>
         </div>
       )}
 
@@ -426,22 +427,22 @@ export default function PdfRemoveWatermarkPage() {
               />
             </svg>
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-slate-900">处理完成！</h2>
+          <h2 className="mb-2 text-2xl font-bold text-slate-900">{t("pdf_remove_watermark.done")}</h2>
           <p className="mb-6 text-slate-600">
-            共处理 {result.pageCount} 页，删除了 {result.removedCount} 处图片引用
+            {t("pdf_remove_watermark.result_summary", { pages: result.pageCount, removed: result.removedCount })}
           </p>
           <div className="flex justify-center gap-4">
             <button
               onClick={handleReset}
               className="rounded-lg border border-slate-300 bg-white px-6 py-3 text-slate-700 hover:bg-slate-50"
             >
-              处理新文件
+              {t("pdf_remove_watermark.new_file")}
             </button>
             <button
               onClick={handleDownload}
               className="rounded-lg bg-primary-600 px-8 py-3 font-medium text-white hover:bg-primary-700"
             >
-              下载 PDF
+              {t("pdf_remove_watermark.download_pdf")}
             </button>
           </div>
         </div>
@@ -530,13 +531,13 @@ function ImageCard({
           ) : (
             <div className="text-center text-xs text-indigo-500">
               <div className="mb-1 text-2xl">📦</div>
-              Form 对象
+              {t("pdf_remove_watermark.form_obj")}
             </div>
           )
         ) : (
           <div className="text-center text-xs text-slate-400">
             <div className="mb-1 text-2xl">🖼️</div>
-            无法预览
+            {t("pdf_remove_watermark.no_preview")}
           </div>
         )}
       </div>
@@ -555,7 +556,7 @@ function ImageCard({
           )}
           {isSheared && (
             <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] text-red-700">
-              倾斜
+              {t("pdf_remove_watermark.sheared")}
             </span>
           )}
         </div>
@@ -572,7 +573,7 @@ function ImageCard({
 function DumpPanel({ dump }: { dump: any }) {
   return (
     <details className="rounded-xl border border-slate-300 bg-slate-900 p-4 text-xs text-slate-100">
-      <summary className="cursor-pointer font-semibold">🔍 PDF 结构诊断（供开发者查看）</summary>
+      <summary className="cursor-pointer font-semibold">{t("pdf_remove_watermark.diagnostics")}</summary>
       <pre className="mt-3 max-h-[400px] overflow-auto whitespace-pre-wrap break-all font-mono leading-relaxed">
 {JSON.stringify(dump, (k, v) => {
   if (k === "imageBytes") return `<${(v as Uint8Array).length} bytes>`;

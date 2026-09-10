@@ -1,15 +1,17 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
 
 const BASES: { value: number; label: string; prefix: string }[] = [
-  { value: 2, label: "二进制", prefix: "0b" },
-  { value: 8, label: "八进制", prefix: "0o" },
-  { value: 10, label: "十进制", prefix: "" },
-  { value: 16, label: "十六进制", prefix: "0x" },
+  { value: 2, label: t("util_number_base.binary"), prefix: "0b" },
+  { value: 8, label: t("util_number_base.octal"), prefix: "0o" },
+  { value: 10, label: t("util_number_base.decimal"), prefix: "" },
+  { value: 16, label: t("util_number_base.hexadecimal"), prefix: "0x" },
 ];
 
 function isValidForBase(value: string, base: number): boolean {
@@ -71,24 +73,24 @@ export default function Page() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <ToolHeader title="进制转换器" description="实时在二进制、八进制、十进制、十六进制之间转换数字" />
+      <ToolHeader title={t("util_number_base.title")} description={t("util_number_base.desc")} />
 
       <section className="card p-6 space-y-4 animate-slide-up">
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700">输入数字</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-700">{t("util_number_base.label_input")}</label>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="输入要转换的数字"
+              placeholder={t("util_number_base.placeholder")}
               className={`input-base font-mono text-lg tracking-wider ${
                 !isValid ? "border-red-300 focus:border-red-400 focus:ring-red-500/10" : ""
               }`}
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700">源进制</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-700">{t("util_number_base.label_source")}</label>
             <select
               value={base}
               onChange={(e) => setBase(Number(e.target.value))}
@@ -103,12 +105,12 @@ export default function Page() {
 
         {!isValid && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-            ⚠️ 输入的数字不符合当前进制的字符范围
+            ⚠️ {t("util_number_base.不符合当前进制")}
           </div>
         )}
 
         <div className="flex flex-wrap gap-2 pt-2">
-          <span className="text-xs text-zinc-400 self-center mr-1">快速转换：</span>
+          <span className="text-xs text-zinc-400 self-center mr-1">{t("util_number_base.quick_convert")}</span>
           <button onClick={() => quickConvert("1010", 2)} className="rounded-md bg-zinc-100 px-2.5 py-1 text-xs text-zinc-600 hover:bg-zinc-200">1010b → 10</button>
           <button onClick={() => quickConvert("777", 8)} className="rounded-md bg-zinc-100 px-2.5 py-1 text-xs text-zinc-600 hover:bg-zinc-200">777o → 511</button>
           <button onClick={() => quickConvert("4096", 10)} className="rounded-md bg-zinc-100 px-2.5 py-1 text-xs text-zinc-600 hover:bg-zinc-200">4096d → 1000h</button>
@@ -136,7 +138,7 @@ export default function Page() {
                     onClick={() => handleCopy(i, r.display)}
                     className="text-[10px] text-zinc-400 opacity-0 group-hover:opacity-100 hover:text-primary-600 transition-all"
                   >
-                    {copiedIndex === i ? "✓ 已复制" : "复制"}
+                    {copiedIndex === i ? t("img_ocr.copied") : t("img_base64.copy")}
                   </button>
                 </div>
                 <div className="font-mono text-xl font-semibold text-zinc-900 break-all">
@@ -152,15 +154,15 @@ export default function Page() {
       )}
 
       <section className="mt-6 card p-5">
-        <h3 className="mb-3 text-sm font-semibold text-zinc-800">常用进制对照表</h3>
+        <h3 className="mb-3 text-sm font-semibold text-zinc-800">{t("util_number_base.reference_table")}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
-                <th className="px-3 py-2 text-left">十进制</th>
-                <th className="px-3 py-2 text-left">二进制</th>
-                <th className="px-3 py-2 text-left">八进制</th>
-                <th className="px-3 py-2 text-left">十六进制</th>
+                <th className="px-3 py-2 text-left">{t("util_number_base.decimal")}</th>
+                <th className="px-3 py-2 text-left">{t("util_number_base.binary")}</th>
+                <th className="px-3 py-2 text-left">{t("util_number_base.octal")}</th>
+                <th className="px-3 py-2 text-left">{t("util_number_base.hexadecimal")}</th>
               </tr>
             </thead>
             <tbody className="font-mono">
@@ -178,7 +180,7 @@ export default function Page() {
       </section>
 
       <p className="mt-5 text-center text-xs text-zinc-400">
-        转换基于 JavaScript parseInt，支持最大安全整数 (2^53 - 1)
+        {t("util_number_base.转换基于JavaScriptp")}
       </p>
             <ToolUsage tool={getToolById("number-base")!} />
 </main>

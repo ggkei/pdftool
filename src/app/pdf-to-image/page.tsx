@@ -7,6 +7,7 @@ import { useFileGuard } from "@/hooks/useFileGuard";
 import { FileGuardModal } from "@/components/FileGuardModal";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 type Step = "upload" | "rendering" | "done";
 
@@ -53,7 +54,7 @@ export default function PdfToImagePage() {
       return;
     }
     setError("");
-    if (!f.name.toLowerCase().endsWith(".pdf")) { setError("请上传 PDF 文件"); return; }
+    if (!f.name.toLowerCase().endsWith(".pdf")) { setError(t("common.upload_pdf")); return; }
     setFileName(f.name);
     setInputBytes(new Uint8Array(await f.arrayBuffer()));
     setPages([]);
@@ -144,7 +145,7 @@ export default function PdfToImagePage() {
       setStep("done");
     } catch (err: any) {
       console.error("PDF render error:", err);
-      setError(err?.message || "渲染失败");
+      setError(err?.message || t("pdf_to_image.error_failed"));
       setStep("upload");
     } finally {
       setRunning(false);
@@ -197,7 +198,7 @@ export default function PdfToImagePage() {
     return (
       <>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <ToolHeader title="PDF 转图片" description="将每页 PDF 渲染为高清 PNG/JPEG 图片" />
+        <ToolHeader title={t("pdf_to_image.title")} description={t("pdf_to_image.desc")} />
         <div onClick={() => inputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -211,8 +212,8 @@ export default function PdfToImagePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <p className="mb-1 text-lg font-medium text-slate-700">点击上传 PDF，或拖到此处</p>
-          <p className="text-sm text-slate-500">支持 .pdf 格式</p>
+          <p className="mb-1 text-lg font-medium text-slate-700">{t("common.upload_pdf_click_hint")}</p>
+          <p className="text-sm text-slate-500">{t("common.pdf_format_support")}</p>
         </div>
         {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
                 <ToolUsage tool={getToolById("to-image")!} />
@@ -236,20 +237,20 @@ export default function PdfToImagePage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <ToolHeader title="PDF 转图片" description={fileName} />
+      <ToolHeader title={t("pdf_to_image.title")} description={fileName} />
 
       {/* Config bar */}
       <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-slate-600">格式</label>
+            <label className="text-xs font-medium text-slate-600">{t("pdf_to_image.format")}</label>
             <div className="flex rounded-lg bg-slate-100 p-0.5 text-sm">
               <button disabled={running} onClick={() => setFormat("png")} className={`rounded-md px-3 py-1 ${format === "png" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>PNG</button>
               <button disabled={running} onClick={() => setFormat("jpeg")} className={`rounded-md px-3 py-1 ${format === "jpeg" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>JPEG</button>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-slate-600">DPI 倍率</label>
+            <label className="text-xs font-medium text-slate-600">{t("pdf_to_image.dpi")}</label>
             <div className="flex rounded-lg bg-slate-100 p-0.5 text-sm">
               {[1, 2, 3, 4].map((s) => (
                 <button key={s} disabled={running} onClick={() => setScale(s)} className={`rounded-md px-2.5 py-1 ${scale === s ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>
@@ -260,7 +261,7 @@ export default function PdfToImagePage() {
           </div>
           {format === "jpeg" && (
             <div className="flex items-center gap-2 min-w-[160px]">
-              <label className="text-xs font-medium text-slate-600 whitespace-nowrap">质量 {quality}%</label>
+              <label className="text-xs font-medium text-slate-600 whitespace-nowrap">{t("pdf_to_image.quality_label")} {quality}%</label>
               <input type="range" min={10} max={100} value={quality} disabled={running} onChange={(e) => setQuality(+e.target.value)} className="flex-1" />
             </div>
           )}
@@ -268,11 +269,11 @@ export default function PdfToImagePage() {
             {step !== "rendering" && (
               <button onClick={handleRender} disabled={running}
                 className="rounded-lg bg-primary-600 px-5 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:bg-slate-300">
-                {pages.length > 0 ? "🔄 重新渲染" : "🎨 开始渲染"}
+                {pages.length > 0 ? t("pdf_to_image.re_render") : t("pdf_to_image.start")}
               </button>
             )}
             <button onClick={handleNew} disabled={running} className="rounded-lg border border-slate-300 bg-white px-4 text-xs text-slate-500 hover:bg-slate-50">
-              换文件
+              {t("common.switch_file")}
             </button>
           </div>
         </div>
@@ -280,8 +281,8 @@ export default function PdfToImagePage() {
         {step === "rendering" && (
           <div className="mt-3">
             <div className="mb-1 flex items-center justify-between text-xs text-slate-500">
-              <span>渲染中... {progress} / {totalPages || "?"}</span>
-              <span>{totalPages > 0 ? `${Math.round((progress / totalPages) * 100)}%` : "准备中..."}</span>
+              <span>{t("pdf_to_image.rendering", { progress, total: totalPages || "?" })}</span>
+              <span>{totalPages > 0 ? `${Math.round((progress / totalPages) * 100)}%` : t("pdf_to_image.preparing")}</span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
               <div className="h-full bg-primary-600 transition-all" style={{ width: `${totalPages > 0 ? Math.min(100, (progress / totalPages) * 100) : 5}%` }}></div>
@@ -297,16 +298,16 @@ export default function PdfToImagePage() {
         <>
           <div className="mb-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
             <div className="flex-1 text-sm text-slate-600">
-              共 <span className="font-semibold text-primary-600">{pages.length}</span> 张图片
-              · 合计 <span className="font-semibold">{formatSize(totalSize)}</span>
+              {t("common.count_prefix")} <span className="font-semibold text-primary-600">{pages.length}</span> {t("common.images_unit")}
+              · {t("pdf_to_image.total_label")} <span className="font-semibold">{formatSize(totalSize)}</span>
               · {format.toUpperCase()} · {scale}× ({scale * 72}dpi)
             </div>
             <button onClick={handleDownloadAll}
               className="rounded-lg bg-primary-600 px-4 py-2 text-xs font-semibold text-white hover:bg-primary-700">
-              📦 全部下载 (ZIP)
+              {t("pdf_to_image.download_zip")}
             </button>
             {!running && (
-              <button onClick={handleReset} className="text-xs text-slate-400 hover:text-red-500">清除结果</button>
+              <button onClick={handleReset} className="text-xs text-slate-400 hover:text-red-500">{t("pdf_to_image.clear")}</button>
             )}
           </div>
 
@@ -324,7 +325,7 @@ export default function PdfToImagePage() {
                   <div className="text-[10px] text-slate-400">{formatSize(p.size)}</div>
                   <button onClick={() => handleDownloadOne(p)}
                     className="rounded bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600 hover:bg-primary-100 hover:text-primary-600">
-                    下载
+                    {t("common.download")}
                   </button>
                 </div>
               </div>
@@ -335,8 +336,8 @@ export default function PdfToImagePage() {
 
       {pages.length === 0 && step !== "rendering" && (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
-          <p className="mb-2 text-slate-400">点击上方「开始渲染」按钮将 PDF 转换为图片</p>
-          <p className="text-xs text-slate-400">提示：2× 分辨率（144dpi）适合大多数场景，4× 适合打印</p>
+          <p className="mb-2 text-slate-400">{t("pdf_to_image.start_hint")}</p>
+          <p className="text-xs text-slate-400">{t("pdf_to_image.tip")}</p>
         </div>
       )}
       {guard.level && (

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createLoginCode, findUserByEmail, createUser } from "@/lib/db";
+import { createLoginCode, findUserByEmail } from "@/lib/db";
 import { sendLoginCodeEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const code = await createLoginCode(email, purpose);
+  const code = await createLoginCode(email, purpose, "email");
   const result = await sendLoginCodeEmail(email, code);
 
   if (!result.ok) {

@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -9,7 +11,7 @@ export default function UtilRegexPage() {
   const [pattern, setPattern] = useState("\\d+");
   const [flags, setFlags] = useState("g");
   const [text, setText] = useState(
-    "订单号: 20240815001\n金额: ￥1,299.99\n手机号: 138-0000-1234\n日期: 2024-08-15"
+    t("util_regex.sample_text")
   );
   const [error, setError] = useState("");
 
@@ -45,7 +47,7 @@ export default function UtilRegexPage() {
 
       return { matches: all, highlighted: hl };
     } catch (e: any) {
-      setError(e.message || "正则语法错误");
+      setError(e.message || t("util_regex.error_syntax"));
       return { matches: [] as RegExpMatchArray[], highlighted: text };
     }
   }, [pattern, flags, text]);
@@ -61,7 +63,7 @@ export default function UtilRegexPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <ToolHeader title="正则测试器" description="输入正则表达式和测试文本，实时查看匹配结果与高亮" />
+      <ToolHeader title={t("util_regex.title")} description={t("util_regex.desc")} />
 
       <div className="rounded-2xl bg-white/60 backdrop-blur shadow-soft border border-slate-200/70 p-6">
         <div className="grid md:grid-cols-[1fr_auto] gap-3 items-center">
@@ -70,7 +72,7 @@ export default function UtilRegexPage() {
             <input
               value={pattern}
               onChange={(e) => setPattern(e.target.value)}
-              placeholder="正则表达式"
+              placeholder={t("util_regex.label_pattern")}
               className="flex-1 bg-transparent font-mono text-sm text-zinc-900 outline-none placeholder:text-slate-400"
             />
             <span className="font-mono text-slate-400">/</span>
@@ -86,7 +88,7 @@ export default function UtilRegexPage() {
                     ? "bg-primary-600 text-white shadow-soft"
                     : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                 }`}
-                title={{ g: "全局匹配", i: "忽略大小写", m: "多行模式", s: "点匹配换行" }[f]}
+                title={{ g: t("util_regex.flag_g"), i: t("util_regex.flag_i"), m: t("util_regex.flag_m"), s: t("util_regex.flag_s") }[f]}
               >
                 {f}
               </button>
@@ -102,26 +104,26 @@ export default function UtilRegexPage() {
 
         <div className="mt-5 grid md:grid-cols-2 gap-5">
           <div>
-            <label className="mb-2 block text-xs font-medium text-zinc-500">测试文本</label>
+            <label className="mb-2 block text-xs font-medium text-zinc-500">{t("util_regex.label_text")}</label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={10}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-mono text-zinc-900 shadow-inner focus:border-primary-400 focus:outline-none focus:ring-4 focus:ring-primary-500/10 scrollbar-thin"
-              placeholder="在此输入要匹配的文本..."
+              placeholder={t("util_regex.placeholder_text")}
             />
           </div>
           <div>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-medium text-zinc-500">
-                匹配结果 <span className="text-primary-600">{matches.length}</span> 项
+                {t("util_regex.匹配结果")} <span className="text-primary-600">{matches.length}</span> {t("util_regex.项")}
               </span>
               {matches.length > 0 && (
                 <button
                   onClick={copyAll}
                   className="text-xs text-primary-600 hover:text-primary-700"
                 >
-                  复制全部
+                  {t("util_random.复制全部")}
                 </button>
               )}
             </div>
@@ -148,7 +150,7 @@ export default function UtilRegexPage() {
                   )}
                 </div>
               ) : (
-                <span className="text-slate-400">无匹配</span>
+                <span className="text-slate-400">{t("util_regex.no_match")}</span>
               )}
             </div>
             {matches.length > 0 && (

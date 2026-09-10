@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import Link from "next/link";
 import { useState } from "react";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -130,10 +132,10 @@ export default function Page() {
           <svg className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 19l-7-7 7-7" />
           </svg>
-          返回工具箱
+          {t("common.back_to_tools")}
         </Link>
-        <h1 className="font-display text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">颜色转换</h1>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">HEX、RGB、HSL 三格式实时同步转换，一键复制</p>
+        <h1 className="font-display text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{t("util_color.title")}</h1>
+        <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">{t("util_color.desc")}</p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -175,13 +177,13 @@ export default function Page() {
               />
               <button onClick={() => copy("hex", hex)}
                 className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-zinc-500 hover:bg-slate-50">
-                {copiedKey === "hex" ? "已复制" : "复制"}
+                {copiedKey === "hex" ? t("util_common.copied") : t("util_common.copy")}
               </button>
             </div>
           </div>
 
           <div className="mt-5">
-            <div className="mb-2 text-xs font-medium text-zinc-600">预设颜色</div>
+            <div className="mb-2 text-xs font-medium text-zinc-600">{t("util_color.preset_colors")}</div>
             <div className="grid grid-cols-10 gap-1.5">
               {PRESET_COLORS.map(c => (
                 <button key={c} onClick={() => fromHex(c)}
@@ -196,7 +198,7 @@ export default function Page() {
 
         <section className="rounded-2xl border border-slate-200/70 bg-white shadow-soft p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-zinc-800">颜色值</h3>
+            <h3 className="text-sm font-semibold text-zinc-800">{t("util_color.color_value")}</h3>
           </div>
 
           <div className="space-y-5">
@@ -205,7 +207,7 @@ export default function Page() {
                 <label className="text-xs font-medium text-zinc-600">RGB</label>
                 <button onClick={() => copy("rgb", rgbStr)}
                   className="text-[11px] text-brand-600 hover:text-brand-700 font-medium">
-                  {copiedKey === "rgb" ? "已复制" : "复制 RGB()"}
+                  {copiedKey === "rgb" ? t("img_ocr.copied") : t("util_color.copy_rgb")}
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -235,12 +237,12 @@ export default function Page() {
                 <label className="text-xs font-medium text-zinc-600">HSL</label>
                 <button onClick={() => copy("hsl", hslStr)}
                   className="text-[11px] text-brand-600 hover:text-brand-700 font-medium">
-                  {copiedKey === "hsl" ? "已复制" : "复制 HSL()"}
+                  {copiedKey === "hsl" ? t("img_ocr.copied") : t("util_color.copy_hsl")}
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <div className="mb-1 text-[11px] text-zinc-400">Hue 色相</div>
+                  <div className="mb-1 text-[11px] text-zinc-400">{t("util_color.hue")}</div>
                   <div className="flex items-center gap-1">
                     <input
                       type="range"
@@ -262,7 +264,7 @@ export default function Page() {
                   </div>
                 </div>
                 <div>
-                  <div className="mb-1 text-[11px] text-zinc-400">Saturation 饱和度</div>
+                  <div className="mb-1 text-[11px] text-zinc-400">{t("util_color.saturation")}</div>
                   <div className="flex items-center gap-1">
                     <input
                       type="range"
@@ -284,7 +286,7 @@ export default function Page() {
                   </div>
                 </div>
                 <div>
-                  <div className="mb-1 text-[11px] text-zinc-400">Lightness 亮度</div>
+                  <div className="mb-1 text-[11px] text-zinc-400">{t("util_color.lightness")}</div>
                   <div className="flex items-center gap-1">
                     <input
                       type="range"
@@ -309,7 +311,7 @@ export default function Page() {
             </div>
 
             <div>
-              <div className="mb-2 text-xs font-medium text-zinc-600">CSS 片段</div>
+              <div className="mb-2 text-xs font-medium text-zinc-600">{t("util_color.css_snippet")}</div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {[
                   { key: "hex", label: "HEX", val: hex.toUpperCase() },
@@ -324,7 +326,7 @@ export default function Page() {
                     </div>
                     <button onClick={() => copy(item.key, item.val)}
                       className="ml-2 rounded-md px-2 py-0.5 text-[11px] text-brand-600 hover:text-brand-700 font-medium shrink-0">
-                      {copiedKey === item.key ? "已复制" : "复制"}
+                      {copiedKey === item.key ? t("util_common.copied") : t("util_common.copy")}
                     </button>
                   </div>
                 ))}
@@ -332,10 +334,10 @@ export default function Page() {
             </div>
 
             <div>
-              <div className="mb-2 text-xs font-medium text-zinc-600">色彩信息</div>
+              <div className="mb-2 text-xs font-medium text-zinc-600">{t("util_color.color_info")}</div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                  <div className="text-[10px] text-zinc-500">相对亮度</div>
+                  <div className="text-[10px] text-zinc-500">{t("util_color.relative_luminance")}</div>
                   <div className="font-mono text-sm font-semibold text-zinc-700">
                     {(() => {
                       const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(v => {
@@ -347,18 +349,18 @@ export default function Page() {
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                  <div className="text-[10px] text-zinc-500">是否暗色</div>
-                  <div className="font-mono text-sm font-semibold text-zinc-700">{hsl.l < 50 ? "是" : "否"}</div>
+                  <div className="text-[10px] text-zinc-500">{t("util_color.is_dark")}</div>
+                  <div className="font-mono text-sm font-semibold text-zinc-700">{hsl.l < 50 ? t("util_common.yes") : t("util_common.no")}</div>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                  <div className="text-[10px] text-zinc-500">互补色</div>
+                  <div className="text-[10px] text-zinc-500">{t("util_color.complementary")}</div>
                   <div className="flex items-center gap-1.5">
                     <span className="inline-block h-4 w-4 rounded border border-slate-300" style={{ backgroundColor: rgbToHex(hslToRgb({ h: (hsl.h + 180) % 360, s: hsl.s, l: hsl.l })) }} />
                     <span className="font-mono text-xs font-semibold text-zinc-700">{rgbToHex(hslToRgb({ h: (hsl.h + 180) % 360, s: hsl.s, l: hsl.l })).toUpperCase()}</span>
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                  <div className="text-[10px] text-zinc-500">灰度</div>
+                  <div className="text-[10px] text-zinc-500">{t("util_color.grayscale")}</div>
                   <div className="font-mono text-sm font-semibold text-zinc-700">
                     {Math.round(0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b)}
                   </div>

@@ -7,6 +7,7 @@ import { useFileGuard } from "@/hooks/useFileGuard";
 import { FileGuardModal } from "@/components/FileGuardModal";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 interface FileItem {
   id: string;
@@ -52,7 +53,7 @@ export default function PdfMergePage() {
 
     for (const f of Array.from(fileList)) {
       if (!f.name.toLowerCase().endsWith(".pdf")) {
-        setError(`已跳过非 PDF 文件: ${f.name}`);
+        setError(t("pdf_merge.skipped", { name: f.name }));
         continue;
       }
       const buf = await f.arrayBuffer();
@@ -64,7 +65,7 @@ export default function PdfMergePage() {
         const doc = await PDFDocument.load(bytes);
         pageCount = doc.getPageCount();
       } catch {
-        setError(`无法解析 ${f.name}，可能已损坏`);
+        setError(t("pdf_merge.parse_error", { name: f.name }));
         continue;
       }
 
@@ -118,7 +119,7 @@ export default function PdfMergePage() {
 
   const handleMerge = useCallback(async () => {
     if (files.length < 2) {
-      setError("请至少上传 2 个 PDF 文件进行合并");
+      setError(t("pdf_merge.min_two"));
       return;
     }
     setError("");
@@ -130,7 +131,7 @@ export default function PdfMergePage() {
       setResult({ bytes: res.outputBytes, totalPages: res.totalPages });
       setStep("done");
     } catch (err: any) {
-      setError(err?.message || "合并失败");
+      setError(err?.message || t("pdf_merge.error_failed"));
       setStep("upload");
     }
   }, [files]);
@@ -160,8 +161,8 @@ export default function PdfMergePage() {
   return (
     <main className="mx-auto max-w-4xl px-5 py-10">
       <ToolHeader
-        title="PDF 合并"
-        description="将多个 PDF 文件按顺序合并成一个文件"
+        title={t("pdf_merge.title")}
+        description={t("pdf_merge.desc")}
       />
 
       {step === "upload" && (
@@ -196,9 +197,9 @@ export default function PdfMergePage() {
               </svg>
             </div>
             <p className={`mb-1 text-base font-semibold transition-colors ${dragOver ? "text-brand-700" : "text-zinc-800"}`}>
-              {dragOver ? "松开鼠标以上传" : "点击或拖拽 PDF 文件到此处"}
+              {dragOver ? t("pdf_merge.release") : t("pdf_merge.click_hint")}
             </p>
-            <p className="text-xs text-zinc-400">支持多选 · 可随时继续添加 · 纯本地处理</p>
+            <p className="text-xs text-zinc-400">{t("pdf_merge.sub_hint")}</p>
           </div>
 
           {error && (
@@ -216,16 +217,16 @@ export default function PdfMergePage() {
               <div className="flex items-center justify-between border-b border-slate-200/70 px-5 py-3.5">
                 <div className="flex items-center gap-2 text-sm text-zinc-600">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">
-                    {files.length} 个文件
+                    {t("common.files_count", { count: files.length })}
                   </span>
                   <span className="text-zinc-400">·</span>
-                  <span>{totalPages} 页总计</span>
+                  <span>{t("pdf_merge.total_summary", { total: totalPages })}</span>
                 </div>
                 <button
                   onClick={handleReset}
                   className="text-xs text-zinc-400 transition-colors hover:text-red-500"
                 >
-                  清空全部
+                  {t("pdf_merge.clear_all")}
                 </button>
               </div>
 
@@ -259,7 +260,7 @@ export default function PdfMergePage() {
                         {f.name}
                       </div>
                       <div className="text-xs text-zinc-400">
-                        {formatSize(f.size)} · {f.pages} 页
+                        {formatSize(f.size)} · {f.pages} {t("common.pages_unit")}
                       </div>
                     </div>
                     <div className="flex gap-1">
@@ -267,7 +268,7 @@ export default function PdfMergePage() {
                         disabled={idx === 0}
                         onClick={() => handleMove(idx, idx - 1)}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition-colors hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-20 disabled:hover:bg-transparent"
-                        title="上移"
+                        title={t("pdf_merge.move_up")}
                       >
                         <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
                       </button>
@@ -275,14 +276,14 @@ export default function PdfMergePage() {
                         disabled={idx === files.length - 1}
                         onClick={() => handleMove(idx, idx + 1)}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition-colors hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-20 disabled:hover:bg-transparent"
-                        title="下移"
+                        title={t("pdf_merge.move_down")}
                       >
                         <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                       </button>
                       <button
                         onClick={() => handleRemove(f.id)}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition-colors hover:bg-red-50 hover:text-red-500"
-                        title="删除"
+                        title={t("pdf_merge.remove")}
                       >
                         <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
@@ -297,9 +298,9 @@ export default function PdfMergePage() {
                   disabled={files.length < 2}
                   className="btn-primary w-full disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none disabled:hover:bg-zinc-200"
                 >
-                  开始合并
+                  {t("pdf_merge.start")}
                   <span className="text-xs opacity-70">
-                    → {files.length} 个文件 / {totalPages} 页
+                    {t("pdf_merge.progress", { count: files.length, total: totalPages })}
                   </span>
                 </button>
               </div>
@@ -316,8 +317,8 @@ export default function PdfMergePage() {
               <div className="h-2 w-2 rounded-full bg-brand-600 animate-pulse-soft" />
             </div>
           </div>
-          <p className="text-sm font-medium text-zinc-800">正在合并 PDF 文件...</p>
-          <p className="mt-1 text-xs text-zinc-400">文件仅在浏览器本地处理</p>
+          <p className="text-sm font-medium text-zinc-800">{t("pdf_merge.merging")}</p>
+          <p className="mt-1 text-xs text-zinc-400">{t("common.local_processing")}</p>
         </div>
       )}
 
@@ -329,19 +330,19 @@ export default function PdfMergePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="mb-1 text-xl font-bold text-zinc-900">合并完成！</h2>
+            <h2 className="mb-1 text-xl font-bold text-zinc-900">{t("pdf_merge.done")}</h2>
             <p className="mb-6 text-sm text-zinc-500">
-              {files.length} 个文件 → 共 {result.totalPages} 页
+              {t("pdf_merge.result", { count: files.length, total: result.totalPages })}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <button onClick={handleDownload} className="btn-primary">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
                 </svg>
-                下载合并后的 PDF
+                {t("pdf_merge.download_btn")}
               </button>
               <button onClick={handleReset} className="btn-secondary">
-                继续合并
+                {t("pdf_merge.again")}
               </button>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { useFileGuard } from "@/hooks/useFileGuard";
 import { FileGuardModal } from "@/components/FileGuardModal";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 type Step = "upload" | "processing" | "done";
 
@@ -42,7 +43,7 @@ export default function PdfOcrPage() {
       return;
     }
     setError("");
-    if (!f.name.toLowerCase().endsWith(".pdf")) { setError("请上传 PDF 文件"); return; }
+    if (!f.name.toLowerCase().endsWith(".pdf")) { setError(t("common.upload_pdf")); return; }
     setFileName(f.name);
     setInputBytes(new Uint8Array(await f.arrayBuffer()));
     setPages([]);
@@ -76,7 +77,7 @@ export default function PdfOcrPage() {
         onProgress: (pg, total, stageName) => {
           setProgressPage(pg);
           setTotalPages(total);
-          setStage(stageName || "处理中");
+          setStage(stageName || t("pdf_ocr.processing"));
         },
       });
       setPages(result.pages);
@@ -86,7 +87,7 @@ export default function PdfOcrPage() {
       if (result.pages.length > 0) setActivePage(result.pages[0].pageNumber);
     } catch (err: any) {
       console.error("OCR error:", err);
-      setError(err?.message || "识别失败，请重试");
+      setError(err?.message || t("pdf_ocr.error_failed"));
       setStep("upload");
     }
   }, [inputBytes, language]);
@@ -94,7 +95,7 @@ export default function PdfOcrPage() {
   const handleDownloadAll = useCallback(() => {
     if (pages.length === 0 || !fileName) return;
     const base = fileName.replace(/\.pdf$/i, "");
-    const allText = pages.map((p) => `=== 第 ${p.pageNumber} 页 ===\n${p.text}`).join("\n\n");
+    const allText = pages.map((p) => t("pdf_ocr.page_sep", { page: p.pageNumber }) + "\n" + p.text).join("\n\n");
     const url = URL.createObjectURL(new Blob([allText], { type: "text/plain;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
@@ -116,7 +117,7 @@ export default function PdfOcrPage() {
     return (
       <>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <ToolHeader title="OCR 文字识别" description="从 PDF 中提取文字内容" />
+        <ToolHeader title={t("pdf_ocr.title")} description={t("pdf_ocr.desc")} />
         <div onClick={() => inputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -130,8 +131,8 @@ export default function PdfOcrPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <p className="mb-1 text-lg font-medium text-slate-700">点击上传 PDF，或拖到此处</p>
-          <p className="text-sm text-slate-500">支持 .pdf 格式 · 自动检测扫描件</p>
+          <p className="mb-1 text-lg font-medium text-slate-700">{t("common.upload_pdf_click_hint")}</p>
+          <p className="text-sm text-slate-500">{t("pdf_ocr.format_hint")}</p>
         </div>
         {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
                 <ToolUsage tool={getToolById("ocr")!} />
@@ -155,21 +156,21 @@ export default function PdfOcrPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <ToolHeader title="OCR 文字识别" description={fileName} />
+      <ToolHeader title={t("pdf_ocr.title")} description={fileName} />
 
       <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-4">
-          <div className="text-xs text-slate-500">从 PDF 中提取文字内容</div>
+          <div className="text-xs text-slate-500">{t("pdf_ocr.desc")}</div>
           <div className="ml-auto flex gap-2">
             {step !== "processing" && (
               <button onClick={handleExtract}
                 className="rounded-lg bg-primary-600 px-5 py-2 text-sm font-semibold text-white hover:bg-primary-700">
-                {pages.length > 0 ? "🔄 重新提取" : "🔍 开始提取"}
+                {pages.length > 0 ? t("pdf_ocr.re_extract") : t("pdf_ocr.start")}
               </button>
             )}
             <button onClick={handleReset} disabled={step === "processing"}
               className="rounded-lg border border-slate-300 bg-white px-4 text-xs text-slate-500 hover:bg-slate-50">
-              换文件
+              {t("common.switch_file")}
             </button>
           </div>
         </div>
@@ -194,18 +195,18 @@ export default function PdfOcrPage() {
         <>
           <div className="mb-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
             <div className="flex-1 text-sm text-slate-600">
-              共 <span className="font-semibold text-primary-600">{pages.length}</span> 页
-              · <span className="font-semibold">{totalChars.toLocaleString()}</span> 字符
+              {t("common.count_prefix")} <span className="font-semibold text-primary-600">{pages.length}</span> {t("common.pages_unit")}
+              · <span className="font-semibold">{totalChars.toLocaleString()}</span> {t("pdf_ocr.chars_unit")}
             </div>
             <button onClick={handleDownloadAll}
               className="rounded-lg bg-primary-600 px-4 py-2 text-xs font-semibold text-white hover:bg-primary-700">
-              📄 下载 TXT
+              {t("pdf_ocr.download_txt")}
             </button>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[200px_1fr]">
             <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
-              <div className="mb-2 px-2 text-xs font-medium text-slate-500">页面列表</div>
+              <div className="mb-2 px-2 text-xs font-medium text-slate-500">{t("pdf_ocr.pages_list")}</div>
               <div className="space-y-1 max-h-[480px] overflow-y-auto">
                 {pages.map((p) => (
                   <button key={p.pageNumber} onClick={() => setActivePage(p.pageNumber)}
@@ -214,8 +215,8 @@ export default function PdfOcrPage() {
                         ? "bg-primary-100 text-primary-700 font-medium"
                         : "text-slate-600 hover:bg-slate-50"
                     }`}>
-                    第 {p.pageNumber} 页
-                    <span className="float-right text-slate-400">{p.text.length}字</span>
+                    {t("common.page_label", { page: p.pageNumber })}
+                    <span className="float-right text-slate-400">{t("pdf_ocr.char_count", { n: p.text.length })}</span>
                   </button>
                 ))}
               </div>
@@ -224,18 +225,18 @@ export default function PdfOcrPage() {
             <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2">
                 <span className="text-sm font-medium text-slate-700">
-                  第 {activePage} 页
+                  {t("common.page_label", { page: activePage })}
                 </span>
                 <button onClick={() => handleCopyPage(activePageData?.text || "")}
                   className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50">
-                  📋 复制
+                  {t("pdf_ocr.copy")}
                 </button>
               </div>
               <div className="p-4">
                 {activePageData?.text ? (
                   <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-slate-700">{activePageData.text}</pre>
                 ) : (
-                  <p className="text-center text-sm text-slate-400 py-8">本页未检测到文字</p>
+                  <p className="text-center text-sm text-slate-400 py-8">{t("pdf_ocr.no_text")}</p>
                 )}
               </div>
             </div>
@@ -245,8 +246,8 @@ export default function PdfOcrPage() {
 
       {pages.length === 0 && step !== "processing" && (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
-          <p className="mb-2 text-slate-400">点击上方「开始识别」按钮提取 PDF 文字</p>
-          <p className="text-xs text-slate-400">提示：仅对文字型 PDF 有效，扫描件不会有文字输出</p>
+          <p className="mb-2 text-slate-400">{t("pdf_ocr.start_hint")}</p>
+          <p className="text-xs text-slate-400">{t("pdf_ocr.tip")}</p>
         </div>
       )}
       {guard.level && (

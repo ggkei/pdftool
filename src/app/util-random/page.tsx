@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useEffect, useRef, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -30,7 +32,7 @@ export default function UtilRandomPage() {
   const [sorted, setSorted] = useState(false);
   const [results, setResults] = useState<number[]>([]);
 
-  const [names, setNames] = useState("张三\n李四\n王五\n赵六\n钱七\n孙八");
+  const [names, setNames] = useState(t("util_random.sample_names"));
   const [picked, setPicked] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
   const rollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -111,7 +113,7 @@ export default function UtilRandomPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <ToolHeader title="随机生成器" description="随机数生成与随机抽签，支持批量与不重复选项" />
+      <ToolHeader title={t("util_random.随机生成器")} description={t("util_random.随机数生成与随机抽签支持批量与不重复选项")} />
 
       <div className="flex gap-2 mb-5">
         <button
@@ -122,7 +124,7 @@ export default function UtilRandomPage() {
               : "border border-slate-200 bg-white text-zinc-700 hover:border-primary-400 hover:text-primary-600"
           }`}
         >
-          🎲 随机数
+          {t("util_random.随机数")}
         </button>
         <button
           onClick={() => setMode("draw")}
@@ -132,7 +134,7 @@ export default function UtilRandomPage() {
               : "border border-slate-200 bg-white text-zinc-700 hover:border-primary-400 hover:text-primary-600"
           }`}
         >
-          🎯 随机抽签
+          {t("util_random.随机抽签")}
         </button>
       </div>
 
@@ -141,7 +143,7 @@ export default function UtilRandomPage() {
           <div className="space-y-5">
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-zinc-500">最小值</label>
+                <label className="mb-1 block text-xs font-medium text-zinc-500">{t("util_random.label_min")}</label>
                 <input
                   type="number"
                   value={minVal}
@@ -150,7 +152,7 @@ export default function UtilRandomPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-zinc-500">最大值</label>
+                <label className="mb-1 block text-xs font-medium text-zinc-500">{t("util_random.label_max")}</label>
                 <input
                   type="number"
                   value={maxVal}
@@ -159,7 +161,7 @@ export default function UtilRandomPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-zinc-500">生成数量</label>
+                <label className="mb-1 block text-xs font-medium text-zinc-500">{t("util_random.label_count")}</label>
                 <input
                   type="number"
                   min={1}
@@ -179,7 +181,7 @@ export default function UtilRandomPage() {
                   onChange={(e) => setUnique(e.target.checked)}
                   className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-zinc-700">不重复</span>
+                <span className="text-zinc-700">{t("util_random.unique")}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -188,7 +190,7 @@ export default function UtilRandomPage() {
                   onChange={(e) => setSorted(e.target.checked)}
                   className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-zinc-700">排序显示</span>
+                <span className="text-zinc-700">{t("util_random.sorted")}</span>
               </label>
             </div>
 
@@ -196,20 +198,20 @@ export default function UtilRandomPage() {
               onClick={doGenNumber}
               className="w-full rounded-xl bg-primary-600 py-2.5 text-sm font-semibold text-white shadow-card hover:bg-primary-700 hover:shadow-glow active:scale-[0.98] transition"
             >
-              🎲 生成随机数
+              {t("util_random.生成随机数")}
             </button>
 
             {results.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-zinc-500">
-                    共 {results.length} 个结果
+                    {t("util_common.共")} {results.length} {t("util_random.个结果")}
                   </span>
                   <button
                     onClick={copyResults}
                     className="text-xs text-primary-600 hover:text-primary-700"
                   >
-                    复制全部
+                    {t("util_random.复制全部")}
                   </button>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-inner min-h-[80px]">
@@ -233,17 +235,17 @@ export default function UtilRandomPage() {
           <div className="space-y-5">
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-500">
-                候选名单（每行一个）
+                {t("util_random.候选名单")}
               </label>
               <textarea
                 value={names}
                 onChange={(e) => setNames(e.target.value)}
                 rows={6}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-inner focus:border-primary-400 focus:outline-none focus:ring-4 focus:ring-primary-500/10 scrollbar-thin"
-                placeholder="张三&#10;李四&#10;王五"
+                placeholder={t("util_random.候选名单示例")}
               />
               <div className="mt-1 text-[11px] text-slate-400">
-                共 {names.split(/\r?\n/).filter((s) => s.trim()).length} 位候选人
+                {t("util_common.共")} {names.split(/\r?\n/).filter((s) => s.trim()).length} {t("util_random.位候选人")}
               </div>
             </div>
 
@@ -252,12 +254,12 @@ export default function UtilRandomPage() {
               disabled={rolling || !names.trim()}
               className="w-full rounded-xl bg-primary-600 py-2.5 text-sm font-semibold text-white shadow-card hover:bg-primary-700 hover:shadow-glow active:scale-[0.98] transition disabled:bg-slate-300 disabled:shadow-none"
             >
-              {rolling ? "抽取中..." : "🎯 开始抽签"}
+              {rolling ? t("util_random.rolling") : t("util_random.start_draw")}
             </button>
 
             {(picked || rolling) && (
               <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-primary-300 bg-primary-50/50 py-10">
-                <div className="text-xs text-primary-600 mb-2">🎉 幸运儿</div>
+                <div className="text-xs text-primary-600 mb-2">{t("util_random.winner")}</div>
                 <div
                   className={`text-4xl font-bold font-display text-primary-700 transition-all ${
                     rolling ? "animate-pulse-soft" : "animate-scale-in"
@@ -270,7 +272,7 @@ export default function UtilRandomPage() {
                     onClick={copyPicked}
                     className="mt-4 rounded-lg border border-primary-200 bg-white px-4 py-1.5 text-xs text-primary-700 hover:bg-primary-50"
                   >
-                    复制结果
+                    {t("util_random.复制结果")}
                   </button>
                 )}
               </div>

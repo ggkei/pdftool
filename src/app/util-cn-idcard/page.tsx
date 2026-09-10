@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -22,13 +24,13 @@ function parseBirthDate(id: string): { date: string; valid: boolean } {
   const month = parseInt(id.slice(10, 12), 10);
   const day = parseInt(id.slice(12, 14), 10);
   if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) {
-    return { date: "无效", valid: false };
+    return { date: t("util_cn_idcard.invalid_date"), valid: false };
   }
   const d = new Date(year, month - 1, day);
   if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) {
-    return { date: "无效", valid: false };
+    return { date: t("util_cn_idcard.invalid_date"), valid: false };
   }
-  return { date: `${year}年${month}月${day}日`, valid: true };
+  return { date: t("util_cn_idcard.出生日期格式", {y: year, m: month, d: day}), valid: true };
 }
 
 function calculateAge(id: string): number | null {
@@ -47,16 +49,16 @@ function calculateAge(id: string): number | null {
 
 function getGender(id: string): { name: string; icon: string } {
   const digit = parseInt(id[16], 10);
-  return digit % 2 === 1 ? { name: "男", icon: "♂" } : { name: "女", icon: "♀" };
+  return digit % 2 === 1 ? { name: t("util_cn_idcard.male"), icon: "♂" } : { name: t("util_cn_idcard.female"), icon: "♀" };
 }
 
 const PROVINCES: Record<string, string> = {
-  "11": "北京", "12": "天津", "13": "河北", "14": "山西", "15": "内蒙古",
-  "21": "辽宁", "22": "吉林", "23": "黑龙江",
-  "31": "上海", "32": "江苏", "33": "浙江", "34": "安徽", "35": "福建", "36": "江西", "37": "山东",
-  "41": "河南", "42": "湖北", "43": "湖南", "44": "广东", "45": "广西", "46": "海南",
-  "50": "重庆", "51": "四川", "52": "贵州", "53": "云南", "54": "西藏",
-  "61": "陕西", "62": "甘肃", "63": "青海", "64": "宁夏", "65": "新疆",
+  "11": t("util_cn_idcard.prov_11"), "12": t("util_cn_idcard.prov_12"), "13": t("util_cn_idcard.prov_13"), "14": t("util_cn_idcard.prov_14"), "15": t("util_cn_idcard.prov_15"),
+  "21": t("util_cn_idcard.prov_21"), "22": t("util_cn_idcard.prov_22"), "23": t("util_cn_idcard.prov_23"),
+  "31": t("util_cn_idcard.prov_31"), "32": t("util_cn_idcard.prov_32"), "33": t("util_cn_idcard.prov_33"), "34": t("util_cn_idcard.prov_34"), "35": t("util_cn_idcard.prov_35"), "36": t("util_cn_idcard.prov_36"), "37": t("util_cn_idcard.prov_37"),
+  "41": t("util_cn_idcard.prov_41"), "42": t("util_cn_idcard.prov_42"), "43": t("util_cn_idcard.prov_43"), "44": t("util_cn_idcard.prov_44"), "45": t("util_cn_idcard.prov_45"), "46": t("util_cn_idcard.prov_46"),
+  "50": t("util_cn_idcard.prov_50"), "51": t("util_cn_idcard.prov_51"), "52": t("util_cn_idcard.prov_52"), "53": t("util_cn_idcard.prov_53"), "54": t("util_cn_idcard.prov_54"),
+  "61": t("util_cn_idcard.prov_61"), "62": t("util_cn_idcard.prov_62"), "63": t("util_cn_idcard.prov_63"), "64": t("util_cn_idcard.prov_64"), "65": t("util_cn_idcard.prov_65"),
 };
 
 interface ValidResult {
@@ -84,24 +86,24 @@ export default function Page() {
     if (!trimmed) return null;
 
     if (trimmed.length !== 18) {
-      return { valid: false, error: "身份证号必须为 18 位" };
+      return { valid: false, error: t("util_cn_idcard.error_length") };
     }
     if (!/^\d{17}[\dXx]$/.test(trimmed)) {
-      return { valid: false, error: "格式不正确，应为 17 位数字加 1 位数字或 X" };
+      return { valid: false, error: t("util_cn_idcard.error_format") };
     }
     if (!validateChecksum(trimmed)) {
-      return { valid: false, error: "校验位不正确，该身份证号不存在" };
+      return { valid: false, error: t("util_cn_idcard.error_checksum") };
     }
 
     const birth = parseBirthDate(trimmed);
     if (!birth.valid) {
-      return { valid: false, error: "出生日期无效" };
+      return { valid: false, error: t("util_cn_idcard.error_birth") };
     }
 
     const provinceCode = trimmed.slice(0, 2);
     return {
       valid: true,
-      province: PROVINCES[provinceCode] || provinceCode + " (未知地区)",
+      province: PROVINCES[provinceCode] || provinceCode + t("util_cn_idcard.未知地区"),
       birthDate: birth.date,
       age: calculateAge(trimmed),
       gender: getGender(trimmed),
@@ -118,24 +120,24 @@ export default function Page() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <ToolHeader title="身份证验证器" description="校验 18 位中国居民身份证号的合法性，提取出生日期、性别、年龄" />
+      <ToolHeader title={t("util_cn_idcard.title")} description={t("util_cn_idcard.desc")} />
 
       <section className="card p-6 space-y-4 animate-slide-up">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-zinc-700">身份证号</label>
+          <label className="mb-1.5 block text-sm font-medium text-zinc-700">{t("util_cn_idcard.label_id")}</label>
           <input
             type="text"
             maxLength={18}
             value={id}
             onChange={(e) => setId(e.target.value)}
-            placeholder="请输入 18 位身份证号"
+            placeholder={t("util_cn_idcard.请输入18位身份证号")}
             className="input-base font-mono tracking-widest text-lg uppercase"
           />
         </div>
 
         {!result && (
           <div className="rounded-xl bg-zinc-50 p-4 text-center text-sm text-zinc-500">
-            输入完整 18 位身份证号后自动验证
+            {t("util_cn_idcard.输入完整18位身份证号后自动验证")}
           </div>
         )}
 
@@ -159,46 +161,46 @@ export default function Page() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <span className="font-semibold text-green-700">身份证号有效</span>
+            <span className="font-semibold text-green-700">{t("util_cn_idcard.valid_msg")}</span>
             <button
               onClick={handleCopy}
               className="ml-auto rounded-lg border border-zinc-200 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-50 transition-colors"
             >
-              {copied ? "✓ 已复制" : "复制号码"}
+              {copied ? t("img_ocr.copied") : t("util_cn_idcard.复制号码")}
             </button>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-primary-50 p-4">
-              <div className="text-xs text-primary-600">归属地</div>
+              <div className="text-xs text-primary-600">{t("util_cn_idcard.label_region")}</div>
               <div className="mt-1 font-display text-xl font-bold text-primary-700">{result.province}</div>
             </div>
             <div className="rounded-xl bg-rose-50 p-4">
-              <div className="text-xs text-rose-600">性别</div>
+              <div className="text-xs text-rose-600">{t("util_cn_idcard.label_gender")}</div>
               <div className="mt-1 font-display text-xl font-bold text-rose-700 flex items-center gap-1">
                 <span className="text-2xl">{result.gender.icon}</span>
                 <span>{result.gender.name}</span>
               </div>
             </div>
             <div className="rounded-xl bg-amber-50 p-4">
-              <div className="text-xs text-amber-600">出生日期</div>
+              <div className="text-xs text-amber-600">{t("util_cn_idcard.label_birth")}</div>
               <div className="mt-1 font-display text-xl font-bold text-amber-700">{result.birthDate}</div>
             </div>
             <div className="rounded-xl bg-zinc-100 p-4">
-              <div className="text-xs text-zinc-600">年龄</div>
-              <div className="mt-1 font-display text-xl font-bold text-zinc-800">{result.age} 岁</div>
+              <div className="text-xs text-zinc-600">{t("util_cn_idcard.label_age")}</div>
+              <div className="mt-1 font-display text-xl font-bold text-zinc-800">{result.age} {t("util_common.岁")}</div>
             </div>
           </div>
 
           <div className="mt-4 text-center">
-            <div className="text-xs text-zinc-500 mb-1">校验码</div>
-            <div className="font-mono text-lg text-zinc-700">最后一位 {result.checkCode}</div>
+            <div className="text-xs text-zinc-500 mb-1">{t("util_cn_idcard.label_checksum")}</div>
+            <div className="font-mono text-lg text-zinc-700">{t("util_cn_idcard.最后一位")} {result.checkCode}</div>
           </div>
         </section>
       )}
 
       <p className="mt-5 text-center text-xs text-zinc-400">
-        所有计算在本地浏览器完成，不会上传身份证信息
+        {t("util_cn_idcard.所有计算在本地浏览器完成不会上传身份证信")}
       </p>
             <ToolUsage tool={getToolById("cn-idcard")!} />
 </main>

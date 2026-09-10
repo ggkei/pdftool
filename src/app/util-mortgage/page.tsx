@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -60,13 +62,13 @@ export default function Page() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <ToolHeader title="房贷计算器" description="支持等额本息与等额本金两种还款方式，快速计算月供和总利息" />
+      <ToolHeader title={t("util_mortgage.title")} description={t("util_mortgage.desc")} />
 
       <section className="card p-6 space-y-5 animate-slide-up">
         <div>
           <label className="mb-1.5 flex items-center justify-between text-sm font-medium text-zinc-700">
-            贷款金额
-            <span className="text-xs text-zinc-400">{amount} 万元</span>
+            {t("util_mortgage.贷款金额")}
+            <span className="text-xs text-zinc-400">{t("util_mortgage.万元", {n: amount})}</span>
           </label>
           <input
             type="number"
@@ -80,8 +82,8 @@ export default function Page() {
 
         <div>
           <label className="mb-1.5 flex items-center justify-between text-sm font-medium text-zinc-700">
-            贷款期限
-            <span className="text-xs text-zinc-400">{years} 年（{years * 12} 期）</span>
+            {t("util_mortgage.贷款期限")}
+            <span className="text-xs text-zinc-400">{t("util_mortgage.years_periods", {years, months: years * 12})}</span>
           </label>
           <input
             type="range"
@@ -92,13 +94,13 @@ export default function Page() {
             className="w-full accent-primary-600"
           />
           <div className="mt-1 flex justify-between text-[10px] text-zinc-400">
-            <span>1年</span><span>10年</span><span>20年</span><span>30年</span>
+            <span>{t("util_mortgage.y1")}</span><span>{t("util_mortgage.y10")}</span><span>{t("util_mortgage.y20")}</span><span>{t("util_mortgage.y30")}</span>
           </div>
         </div>
 
         <div>
           <label className="mb-1.5 flex items-center justify-between text-sm font-medium text-zinc-700">
-            年利率
+            {t("util_mortgage.年利率")}
             <span className="text-xs text-zinc-400">{annualRate}%</span>
           </label>
           <input
@@ -113,7 +115,7 @@ export default function Page() {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-700">还款方式</label>
+          <label className="mb-2 block text-sm font-medium text-zinc-700">{t("util_mortgage.label_method")}</label>
           <div className="grid grid-cols-2 gap-2 rounded-xl bg-zinc-100 p-1">
             <button
               onClick={() => setType("equal-principal-interest")}
@@ -123,7 +125,7 @@ export default function Page() {
                   : "text-zinc-500 hover:text-zinc-700"
               }`}
             >
-              等额本息
+              {t("util_mortgage.等额本息")}
             </button>
             <button
               onClick={() => setType("equal-principal")}
@@ -133,7 +135,7 @@ export default function Page() {
                   : "text-zinc-500 hover:text-zinc-700"
               }`}
             >
-              等额本金
+              {t("util_mortgage.等额本金")}
             </button>
           </div>
         </div>
@@ -141,56 +143,56 @@ export default function Page() {
 
       {result && (
         <section className="mt-6 card p-6 animate-slide-up">
-          <h3 className="mb-4 font-display text-lg font-semibold text-zinc-900">计算结果</h3>
+          <h3 className="mb-4 font-display text-lg font-semibold text-zinc-900">{t("util_mortgage.result_title")}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="rounded-xl bg-primary-50 p-4">
               <div className="text-xs text-primary-600">
-                {type === "equal-principal-interest" ? "每月月供" : "首月月供"}
+                {type === "equal-principal-interest" ? t("util_mortgage.monthly_payment") : t("util_mortgage.first_payment")}
               </div>
               <div className="mt-1 font-display text-2xl font-bold text-primary-700">
                 ¥ {result.firstMonth.toFixed(2)}
               </div>
               {type === "equal-principal" && (
                 <div className="mt-1 text-[10px] text-zinc-500">
-                  末月 ¥{result.lastMonth.toFixed(2)}，每月递减 ¥{((amount * 10000) / (years * 12) * annualRate / 12 / 100).toFixed(2)}
+                  {t("util_mortgage.末月")} ¥{result.lastMonth.toFixed(2)}，{t("util_mortgage.每月递减")} ¥{((amount * 10000) / (years * 12) * annualRate / 12 / 100).toFixed(2)}
                 </div>
               )}
             </div>
             <div className="rounded-xl bg-amber-50 p-4">
-              <div className="text-xs text-amber-600">总利息</div>
+              <div className="text-xs text-amber-600">{t("util_mortgage.total_interest")}</div>
               <div className="mt-1 font-display text-2xl font-bold text-amber-700">
                 ¥ {result.totalInterest.toFixed(2)}
               </div>
               <div className="mt-1 text-[10px] text-zinc-500">
-                占贷款 {(result.totalInterest / (amount * 10000) * 100).toFixed(1)}%
+                {t("util_mortgage.占贷款")} {(result.totalInterest / (amount * 10000) * 100).toFixed(1)}%
               </div>
             </div>
             <div className="rounded-xl bg-zinc-100 p-4">
-              <div className="text-xs text-zinc-600">还款总额</div>
+              <div className="text-xs text-zinc-600">{t("util_mortgage.total_payment")}</div>
               <div className="mt-1 font-display text-2xl font-bold text-zinc-800">
                 ¥ {result.totalPayment.toFixed(2)}
               </div>
               <div className="mt-1 text-[10px] text-zinc-500">
-                本金 ¥{(amount * 10000).toFixed(2)}
+                {t("util_mortgage.本金")} ¥{(amount * 10000).toFixed(2)}
               </div>
             </div>
           </div>
 
           {type === "equal-principal" && (
             <div className="mt-5">
-              <div className="mb-2 text-xs font-medium text-zinc-600">前 12 期还款明细</div>
+              <div className="mb-2 text-xs font-medium text-zinc-600">{t("util_mortgage.first12")}</div>
               <div className="rounded-lg border border-zinc-200 overflow-hidden text-sm">
                 <table className="w-full">
                   <thead className="bg-zinc-50 text-zinc-500 text-xs">
                     <tr>
-                      <th className="px-3 py-2 text-left">期数</th>
-                      <th className="px-3 py-2 text-right">月供</th>
+                      <th className="px-3 py-2 text-left">{t("util_mortgage.col_period")}</th>
+                      <th className="px-3 py-2 text-right">{t("util_mortgage.col_payment")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {result.monthlyList.slice(0, 12).map((m, i) => (
                       <tr key={i} className="border-t border-zinc-100">
-                        <td className="px-3 py-1.5 text-zinc-600">第 {i + 1} 期</td>
+                        <td className="px-3 py-1.5 text-zinc-600">{t("util_mortgage.第期", {0: i + 1})}</td>
                         <td className="px-3 py-1.5 text-right font-mono text-zinc-800">¥ {m.toFixed(2)}</td>
                       </tr>
                     ))}
@@ -203,7 +205,7 @@ export default function Page() {
       )}
 
       <p className="mt-5 text-center text-xs text-zinc-400">
-        计算结果仅供参考，实际还款以银行核算为准
+        {t("util_mortgage.计算结果仅供参考")}
       </p>
             <ToolUsage tool={getToolById("mortgage")!} />
 </main>

@@ -40,7 +40,7 @@ export default function ImageMosaicPage() {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      /* 内部以原图尺寸绘制，但CSS限制显示宽度 */
+      /* Draw at original image size internally, but CSS limits displayed width */
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
       const ctx = canvas.getContext("2d");
@@ -48,7 +48,7 @@ export default function ImageMosaicPage() {
       ctx.drawImage(img, 0, 0);
       ctxRef.current = ctx;
 
-      /* 计算CSS显示缩放 */
+      /* Compute CSS display scale */
       const maxDisplay = Math.min(600, window.innerWidth - 64);
       const scale = Math.min(1, maxDisplay / img.naturalWidth);
       displayScaleRef.current = scale;
@@ -58,7 +58,7 @@ export default function ImageMosaicPage() {
     img.src = url;
   }, []);
 
-  /* 鼠标坐标 → Canvas像素坐标 */
+  /* Mouse coords -> Canvas pixel coords */
   const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -84,7 +84,7 @@ export default function ImageMosaicPage() {
 
     for (let dy = 0; dy < bs && startY + dy < img.naturalHeight; dy++) {
       for (let dx = 0; dx < bs && startX + dx < img.naturalWidth; dx++) {
-        /* 取块中心像素颜色 */
+        /* Sample pixel color at block center */
         const px = Math.min(startX + Math.floor(bs / 2), img.naturalWidth - 1);
         const py = Math.min(startY + Math.floor(bs / 2), img.naturalHeight - 1);
         const pixel = ctx.getImageData(px, py, 1, 1).data;

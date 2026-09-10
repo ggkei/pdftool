@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useEffect, useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -12,16 +14,16 @@ interface City {
 }
 
 const CITIES: City[] = [
-  { name: "北京", timezone: "Asia/Shanghai", flag: "🇨🇳" },
-  { name: "东京", timezone: "Asia/Tokyo", flag: "🇯🇵" },
-  { name: "伦敦", timezone: "Europe/London", flag: "🇬🇧" },
-  { name: "纽约", timezone: "America/New_York", flag: "🇺🇸" },
-  { name: "洛杉矶", timezone: "America/Los_Angeles", flag: "🇺🇸" },
-  { name: "悉尼", timezone: "Australia/Sydney", flag: "🇦🇺" },
-  { name: "迪拜", timezone: "Asia/Dubai", flag: "🇦🇪" },
-  { name: "新加坡", timezone: "Asia/Singapore", flag: "🇸🇬" },
-  { name: "莫斯科", timezone: "Europe/Moscow", flag: "🇷🇺" },
-  { name: "巴黎", timezone: "Europe/Paris", flag: "🇫🇷" },
+  { name: t("util_world_time.city_beijing"), timezone: "Asia/Shanghai", flag: "🇨🇳" },
+  { name: t("util_world_time.city_tokyo"), timezone: "Asia/Tokyo", flag: "🇯🇵" },
+  { name: t("util_world_time.city_london"), timezone: "Europe/London", flag: "🇬🇧" },
+  { name: t("util_world_time.city_newyork"), timezone: "America/New_York", flag: "🇺🇸" },
+  { name: t("util_world_time.city_losangeles"), timezone: "America/Los_Angeles", flag: "🇺🇸" },
+  { name: t("util_world_time.city_sydney"), timezone: "Australia/Sydney", flag: "🇦🇺" },
+  { name: t("util_world_time.city_dubai"), timezone: "Asia/Dubai", flag: "🇦🇪" },
+  { name: t("util_world_time.city_singapore"), timezone: "Asia/Singapore", flag: "🇸🇬" },
+  { name: t("util_world_time.city_moscow"), timezone: "Europe/Moscow", flag: "🇷🇺" },
+  { name: t("util_world_time.city_paris"), timezone: "Europe/Paris", flag: "🇫🇷" },
 ];
 
 function getTimeParts(timezone: string, date: Date) {
@@ -52,10 +54,10 @@ function getOffsetFromBeijing(timezone: string, date: Date): string {
   const diff = (tz.getTime() - bj.getTime()) / 1000 / 60;
   const hours = Math.floor(diff / 60);
   const mins = Math.abs(Math.round(diff % 60));
-  if (hours === 0 && mins === 0) return "与北京同时区";
+  if (hours === 0 && mins === 0) return t("util_world_time.same_as_beijing");
   const sign = hours >= 0 ? "+" : "";
   const h = Math.abs(hours);
-  if (mins === 0) return `UTC ${sign}${hours} 小时`;
+  if (mins === 0) return t("util_world_time.UTC小时", {sign, hours});
   return `UTC ${sign}${hours}:${mins.toString().padStart(2, "0")}`;
 }
 
@@ -228,7 +230,7 @@ export default function Page() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <ToolHeader title="世界时钟" description="实时查看全球主要城市时间 + 时区转换" />
+      <ToolHeader title={t("util_world_time.title")} description={t("util_world_time.desc")} />
 
       <section className="card p-6 mb-6 animate-slide-up">
         <div className="text-center">
@@ -237,7 +239,7 @@ export default function Page() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75"></span>
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-600"></span>
             </span>
-            北京时间
+            {t("util_world_time.北京时间")}
           </div>
           <div className="font-display text-4xl sm:text-5xl font-bold text-zinc-900 tracking-wider">
             {beijingTime.time}
@@ -251,12 +253,12 @@ export default function Page() {
           <svg className="h-5 w-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
           </svg>
-          时区转换器
+          {t("util_world_time.时区转换器")}
         </h2>
 
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700">源时区</label>
+            <label className="block text-sm font-medium text-zinc-700">{t("util_world_time.label_from")}</label>
             <select
               value={fromCity}
               onChange={(e) => setFromCity(e.target.value)}
@@ -279,7 +281,7 @@ export default function Page() {
           <button
             onClick={handleSwap}
             className="mb-0.5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary-600 text-white shadow-soft hover:bg-primary-700 active:scale-95 transition-transform"
-            title="交换时区"
+            title={t("util_world_time.swap_tz")}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -287,7 +289,7 @@ export default function Page() {
           </button>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700">目标时区</label>
+            <label className="block text-sm font-medium text-zinc-700">{t("util_world_time.label_to")}</label>
             <select
               value={toCity}
               onChange={(e) => setToCity(e.target.value)}
@@ -303,10 +305,10 @@ export default function Page() {
               {convertResult && (
                 <div className="text-xs text-zinc-500">
                   {convertResult.diffHours === 0
-                    ? "同时区"
+                    ? t("util_world_time.same_tz")
                     : convertResult.diffHours > 0
-                    ? `目标快 ${convertResult.diffHours} 小时`
-                    : `目标慢 ${Math.abs(convertResult.diffHours)} 小时`}
+                    ? t("util_world_time.目标快", {0: convertResult.diffHours})
+                    : t("util_world_time.目标慢", {0: Math.abs(convertResult.diffHours)})}
                 </div>
               )}
             </div>
@@ -318,19 +320,19 @@ export default function Page() {
             onClick={quickSetNow}
             className="rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-200 transition-colors"
           >
-            当前时间
+            {t("util_world_time.当前时间")}
           </button>
           <button
             onClick={() => setInputTime(getLocalISOString(new Date(Date.now() + 3600000), fromCity))}
             className="rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-200 transition-colors"
           >
-            +1 小时
+            {t("util_world_time.1小时")}
           </button>
           <button
             onClick={() => setInputTime(getLocalISOString(new Date(Date.now() + 86400000), fromCity))}
             className="rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-200 transition-colors"
           >
-            +1 天
+            {t("util_world_time.1天")}
           </button>
         </div>
 
@@ -390,7 +392,7 @@ export default function Page() {
                 <span>{parts.date}</span>
                 <span
                   className={`px-2 py-0.5 rounded-full ${
-                    offset === "与北京同时区"
+                    offset === t("util_world_time.same_as_beijing")
                       ? "bg-green-100 text-green-700"
                       : offset.startsWith("UTC -")
                       ? "bg-blue-100 text-blue-700"
@@ -406,7 +408,7 @@ export default function Page() {
       </section>
 
       <p className="mt-6 text-center text-xs text-zinc-400">
-        时间基于浏览器系统时钟计算，依赖 Intl.DateTimeFormat API
+        {t("util_world_time.浏览器系统时钟")}
       </p>
       <ToolUsage tool={getToolById("world-time")!} />
     </main>

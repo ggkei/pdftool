@@ -101,7 +101,7 @@ export default function ImageBeautifyPage() {
       const imageData = ctx.getImageData(0, 0, cw, ch);
       const data = imageData.data;
 
-      /* 1. Skin smoothing: blur then blend (high-frequency detail保留) */
+      /* 1. Skin smoothing: blur then blend (keeps high-frequency details) */
       if (smooth > 0) {
         const radius = Math.max(1, Math.floor(smooth / 6));
         const blurred = boxBlur(data, cw, ch, radius);
@@ -299,7 +299,7 @@ export default function ImageBeautifyPage() {
             </div>
           </div>
 
-          {/* 编辑阶段显示原图预览 */}
+          {/* Show original preview during the edit phase */}
           {step === "edit" && previewUrl && (
             <div className="rounded-2xl bg-white/60 backdrop-blur border border-slate-200/70 p-6">
               <h3 className="text-sm font-semibold text-zinc-700 mb-4">{t("img_beautify.original_preview_title")}</h3>

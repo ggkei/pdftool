@@ -8,6 +8,7 @@ import { FileGuardModal } from "@/components/FileGuardModal";
 import { splitPdf, parseRangeString, splitEachPage, splitEveryN, type SplitRange } from "@/lib/pdf/splitPdf";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 interface FileItem {
   name: string;
@@ -58,7 +59,7 @@ export default function PdfSplitPage() {
     }
     setError("");
     if (!f.name.toLowerCase().endsWith(".pdf")) {
-      setError("请上传 PDF 文件");
+      setError(t("common.upload_pdf"));
       return;
     }
     const buf = await f.arrayBuffer();
@@ -69,11 +70,11 @@ export default function PdfSplitPage() {
       const doc = await PDFDocument.load(bytes);
       totalPages = doc.getPageCount();
     } catch {
-      setError("无法解析该 PDF，文件可能已损坏");
+      setError(t("pdf_split.error_parse"));
       return;
     }
     if (totalPages === 0) {
-      setError("PDF 没有页面");
+      setError(t("pdf_split.error_no_pages"));
       return;
     }
     setFile({ name: f.name, size: f.size, totalPages, bytes });
@@ -115,7 +116,7 @@ export default function PdfSplitPage() {
     }
 
     if (ranges.length === 0) {
-      setError("请配置拆分方式");
+      setError(t("pdf_split.error_config"));
       return;
     }
 
@@ -127,15 +128,15 @@ export default function PdfSplitPage() {
         res.items.map((it) => ({
           name: it.name,
           pages: it.startPage === it.endPage
-            ? `第 ${it.startPage} 页`
-            : `第 ${it.startPage}-${it.endPage} 页`,
+            ? t("common.page_label", { page: it.startPage })
+            : t("pdf_split.page_range", { start: it.startPage, end: it.endPage }),
           pageCount: it.pageCount,
           bytes: it.bytes,
         }))
       );
       setStep("done");
     } catch (err: any) {
-      setError(err?.message || "拆分失败");
+      setError(err?.message || t("pdf_split.error_failed"));
       setStep("configure");
     } finally {
       setLoading(false);
@@ -202,8 +203,8 @@ export default function PdfSplitPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
       <ToolHeader
-        title="PDF 拆分"
-        description="按页码范围将一个 PDF 拆分成多个文件"
+        title={t("pdf_split.title")}
+        description={t("pdf_split.desc")}
       />
 
       {step === "upload" && (
@@ -234,8 +235,8 @@ export default function PdfSplitPage() {
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
-            <p className="mb-1 text-lg font-medium text-slate-700">点击上传 PDF，或拖到此处</p>
-            <p className="text-sm text-slate-500">支持 .pdf 格式，文件不会上传到服务器</p>
+            <p className="mb-1 text-lg font-medium text-slate-700">{t("common.upload_pdf_click_hint")}</p>
+            <p className="text-sm text-slate-500">{t("pdf_split.format_hint")}</p>
           </div>
 
           {error && (
@@ -255,22 +256,22 @@ export default function PdfSplitPage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="truncate text-sm font-medium text-slate-800">{file.name}</div>
-              <div className="text-xs text-slate-400">{formatSize(file.size)} · {file.totalPages} 页</div>
+              <div className="text-xs text-slate-400">{formatSize(file.size)} · {file.totalPages} {t("common.pages_unit")}</div>
             </div>
-            <button onClick={handleReset} className="text-xs text-slate-400 hover:text-red-500">更换文件</button>
+            <button onClick={handleReset} className="text-xs text-slate-400 hover:text-red-500">{t("pdf_split.change_file")}</button>
           </div>
 
           {step === "configure" && (
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-sm font-semibold text-slate-700">选择拆分方式</h2>
+              <h2 className="mb-4 text-sm font-semibold text-slate-700">{t("pdf_split.mode_title")}</h2>
 
               <div className="space-y-4">
                 <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-slate-50 has-[:checked]:border-primary-400 has-[:checked]:bg-primary-50/50">
                   <input type="radio" name="mode" checked={mode === "each"} onChange={() => setMode("each")}
                     className="mt-0.5 h-4 w-4 accent-primary-600" />
                   <div>
-                    <div className="text-sm font-medium text-slate-800">每页拆成单独文件</div>
-                    <div className="text-xs text-slate-500">共 {file.totalPages} 页 → 生成 {file.totalPages} 个 PDF</div>
+                    <div className="text-sm font-medium text-slate-800">{t("pdf_split.each_page")}</div>
+                    <div className="text-xs text-slate-500">{t("pdf_split.summary", { pages: file.totalPages, files: file.totalPages })}</div>
                   </div>
                 </label>
 
@@ -278,9 +279,9 @@ export default function PdfSplitPage() {
                   <input type="radio" name="mode" checked={mode === "everyN"} onChange={() => setMode("everyN")}
                     className="mt-0.5 h-4 w-4 accent-primary-600" />
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-slate-800">每 N 页一组</div>
+                    <div className="text-sm font-medium text-slate-800">{t("pdf_split.every_n")}</div>
                     <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
-                      每
+                      {t("pdf_split.every_prefix")}
                       <input
                         type="number"
                         min={1}
@@ -290,10 +291,10 @@ export default function PdfSplitPage() {
                         onClick={(e) => e.stopPropagation()}
                         className="w-16 rounded border border-slate-300 px-2 py-1 text-center text-sm"
                       />
-                      页一组
+                      {t("pdf_split.every_suffix")}
                       {mode === "everyN" && (
                         <span className="ml-2 text-slate-400">
-                          → 生成 {Math.ceil(file.totalPages / everyN)} 个文件
+                          {t("pdf_split.every_result", { count: Math.ceil(file.totalPages / everyN) })}
                         </span>
                       )}
                     </div>
@@ -304,17 +305,17 @@ export default function PdfSplitPage() {
                   <input type="radio" name="mode" checked={mode === "range"} onChange={() => setMode("range")}
                     className="mt-0.5 h-4 w-4 accent-primary-600" />
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-slate-800">自定义页码范围</div>
+                    <div className="text-sm font-medium text-slate-800">{t("pdf_split.custom_range")}</div>
                     <input
                       type="text"
                       value={rangeInput}
                       onChange={(e) => setRangeInput(e.target.value)}
                       onClick={(e) => e.stopPropagation()}
-                      placeholder={`例如: 1-3, 5, 7-${file.totalPages}`}
+                      placeholder={t("pdf_split.range_placeholder", { total: file.totalPages })}
                       className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm font-mono"
                     />
                     <div className="mt-1 text-xs text-slate-500">
-                      支持格式：单页 "3"、范围 "1-5"、多个用逗号或空格分隔
+                      {t("pdf_split.range_format")}
                     </div>
                   </div>
                 </label>
@@ -326,7 +327,7 @@ export default function PdfSplitPage() {
 
               {previewRanges.length > 0 && mode !== "each" && (
                 <div className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
-                  <div className="mb-1 font-medium text-slate-700">预览（{previewRanges.length} 个文件）：</div>
+                  <div className="mb-1 font-medium text-slate-700">{t("pdf_split.preview_title", { count: previewRanges.length })}</div>
                   <div className="flex flex-wrap gap-1.5">
                     {previewRanges.slice(0, 20).map((r, i) => (
                       <span key={i} className="rounded bg-white px-2 py-0.5 font-mono text-[11px] text-slate-600 border border-slate-200">
@@ -334,7 +335,7 @@ export default function PdfSplitPage() {
                       </span>
                     ))}
                     {previewRanges.length > 20 && (
-                      <span className="text-slate-400">...等 {previewRanges.length} 个</span>
+                      <span className="text-slate-400">{t("pdf_split.preview_etc", { count: previewRanges.length })}</span>
                     )}
                   </div>
                 </div>
@@ -345,7 +346,7 @@ export default function PdfSplitPage() {
                 disabled={loading}
                 className="mt-5 w-full rounded-lg bg-primary-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-slate-300"
               >
-                开始拆分
+                {t("pdf_split.start")}
               </button>
             </div>
           )}
@@ -353,8 +354,8 @@ export default function PdfSplitPage() {
           {step === "processing" && (
             <div className="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
               <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"></div>
-              <p className="text-slate-600">正在拆分 PDF...</p>
-              <p className="mt-1 text-xs text-slate-400">文件仅在浏览器本地处理</p>
+              <p className="text-slate-600">{t("pdf_split.splitting")}</p>
+              <p className="mt-1 text-xs text-slate-400">{t("common.local_processing")}</p>
             </div>
           )}
 
@@ -362,14 +363,14 @@ export default function PdfSplitPage() {
             <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
                 <div>
-                  <span className="text-sm font-semibold text-slate-800">拆分完成！</span>
-                  <span className="ml-2 text-xs text-slate-500">共生成 {outputs.length} 个文件</span>
+                  <span className="text-sm font-semibold text-slate-800">{t("pdf_split.done")}</span>
+                  <span className="ml-2 text-xs text-slate-500">{t("pdf_split.result_count", { count: outputs.length })}</span>
                 </div>
                 <button
                   onClick={handleDownloadAll}
                   className="rounded-lg bg-primary-600 px-4 py-2 text-xs font-semibold text-white hover:bg-primary-700"
                 >
-                  📦 全部下载 (ZIP)
+                  {t("pdf_split.download_zip")}
                 </button>
               </div>
 
@@ -387,7 +388,7 @@ export default function PdfSplitPage() {
                       onClick={() => handleDownloadOne(o)}
                       className="rounded border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:bg-primary-50 hover:text-primary-600"
                     >
-                      下载
+                      {t("common.download")}
                     </button>
                   </li>
                 ))}
@@ -395,7 +396,7 @@ export default function PdfSplitPage() {
 
               <div className="border-t border-slate-200 px-4 py-3 text-center">
                 <button onClick={handleReset} className="text-xs text-slate-500 hover:text-primary-600">
-                  继续拆分其他文件
+                  {t("pdf_split.again")}
                 </button>
               </div>
             </div>

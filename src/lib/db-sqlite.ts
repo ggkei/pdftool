@@ -1,125 +1,116 @@
-﻿﻿﻿﻿import { Pool } from "pg";
+import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import { TOOLS, TOOL_IDS, DEFAULT_TOOL_THRESHOLDS, MEMBERSHIP_TIERS, PDF_TOOLS, UTIL_TOOLS, type ToolDef, type MembershipTier } from "./tools";
 
 export { TOOLS, TOOL_IDS, PDF_TOOLS, UTIL_TOOLS, MEMBERSHIP_TIERS };
 export type { ToolDef, MembershipTier };
 
-let pool: Pool | null = null;
+const DB_PATH = process.env.SQLITE_PATH || "./dev.sqlite";
+let db: Database.Database | null = null;
 
-function getPool(): Pool {
-  if (!pool) {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new Error("DATABASE_URL environment variable is not set");
-    }
-    pool = new Pool({
-      connectionString,
-      max: 5,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
-    });
+function getDb(): Database.Database {
+  if (!db) {
+    db = new Database(DB_PATH);
+    db.pragma("journal_mode = WAL");
+    db.pragma("foreign_keys = ON");
   }
-  return pool;
+  return db;
 }
 
 async function initDb() {
-  const client = await getPool().connect();
-  try {
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS config (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL,
-        updated_at BIGINT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS verification_codes (
-        code TEXT PRIMARY KEY,
-        used BOOLEAN NOT NULL DEFAULT false,
-        created_at BIGINT NOT NULL,
-        expires_at BIGINT NOT NULL,
-        used_at BIGINT
-      );
-      CREATE TABLE IF NOT EXISTS membership_tokens (
-        token TEXT PRIMARY KEY,
-        tier TEXT NOT NULL DEFAULT 'year',
-        active BOOLEAN NOT NULL DEFAULT true,
-        created_at BIGINT NOT NULL,
-        expires_at BIGINT NOT NULL,
-        bound_user_id INTEGER,
-        bound_at BIGINT
-      );
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        login_method TEXT NOT NULL,
-        email TEXT UNIQUE,
-        phone TEXT UNIQUE,
-        wechat_openid TEXT UNIQUE,
-        nickname TEXT,
-        avatar TEXT,
-        membership_tier TEXT,
-        membership_expires_at BIGINT,
-        created_at BIGINT NOT NULL,
-        last_login_at BIGINT,
-        password TEXT,
-        email_verified BOOLEAN NOT NULL DEFAULT false
-      );
-      CREATE TABLE IF NOT EXISTS login_codes (
-        id SERIAL PRIMARY KEY,
-        email TEXT,
-        phone TEXT,
-        code TEXT NOT NULL,
-        purpose TEXT NOT NULL,
-        used BOOLEAN NOT NULL DEFAULT false,
-        created_at BIGINT NOT NULL,
-        expires_at BIGINT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS sessions (
-        token TEXT PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        created_at BIGINT NOT NULL,
-        expires_at BIGINT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS verification_records (
-        id SERIAL PRIMARY KEY,
-        identifier TEXT NOT NULL,
-        identifier_type TEXT NOT NULL,
-        ad_success BOOLEAN NOT NULL DEFAULT false,
-        ad_unit_id TEXT,
-        code TEXT,
-        created_at BIGINT NOT NULL
-      );
-      CREATE INDEX IF NOT EXISTS idx_login_codes_email ON login_codes(email);
-      CREATE INDEX IF NOT EXISTS idx_verification_records_identifier ON verification_records(identifier);
-      CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-    `);
-    const now = Date.now();
-    const defaults: Record<string, string> = {
-      "verify.enabled": "true",
-      "verify.mb": "8",
-      "verify.minutes": "15",
-      "membership.enabled": "true",
-      "membership.mb": "20",
-      "admin.password": "pdftool@admin2026",
-    };
-    for (const id of TOOL_IDS) {
-      const def = DEFAULT_TOOL_THRESHOLDS[id];
-      if (def) {
-        defaults[`verify.mb.${id}`] = String(def.verify);
-        defaults[`membership.mb.${id}`] = String(def.membership);
-      } else {
-        defaults[`verify.mb.${id}`] = "";
-        defaults[`membership.mb.${id}`] = "";
-      }
+  const d = getDb();
+  d.exec(`
+    CREATE TABLE IF NOT EXISTS config (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at BIGINT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS verification_codes (
+      code TEXT PRIMARY KEY,
+      used INTEGER NOT NULL DEFAULT 0,
+      created_at BIGINT NOT NULL,
+      expires_at BIGINT NOT NULL,
+      used_at BIGINT
+    );
+    CREATE TABLE IF NOT EXISTS membership_tokens (
+      token TEXT PRIMARY KEY,
+      tier TEXT NOT NULL DEFAULT 'year',
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at BIGINT NOT NULL,
+      expires_at BIGINT NOT NULL,
+      bound_user_id INTEGER,
+      bound_at BIGINT
+    );
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      login_method TEXT NOT NULL,
+      email TEXT UNIQUE,
+      phone TEXT UNIQUE,
+      wechat_openid TEXT UNIQUE,
+      nickname TEXT,
+      avatar TEXT,
+      membership_tier TEXT,
+      membership_expires_at BIGINT,
+      created_at BIGINT NOT NULL,
+      last_login_at BIGINT,
+      password TEXT,
+      email_verified INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS login_codes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT,
+      phone TEXT,
+      code TEXT NOT NULL,
+      purpose TEXT NOT NULL,
+      used INTEGER NOT NULL DEFAULT 0,
+      created_at BIGINT NOT NULL,
+      expires_at BIGINT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sessions (
+      token TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      created_at BIGINT NOT NULL,
+      expires_at BIGINT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS verification_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      identifier TEXT NOT NULL,
+      identifier_type TEXT NOT NULL,
+      ad_success INTEGER NOT NULL DEFAULT 0,
+      ad_unit_id TEXT,
+      code TEXT,
+      created_at BIGINT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_login_codes_email ON login_codes(email);
+    CREATE INDEX IF NOT EXISTS idx_verification_records_identifier ON verification_records(identifier);
+    CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+  `);
+
+  const now = Date.now();
+  const defaults: Record<string, string> = {
+    "verify.enabled": "true",
+    "verify.mb": "8",
+    "verify.minutes": "15",
+    "membership.enabled": "true",
+    "membership.mb": "20",
+    "admin.password": "pdftool@admin2026",
+  };
+  for (const id of TOOL_IDS) {
+    const def = DEFAULT_TOOL_THRESHOLDS[id];
+    if (def) {
+      defaults[`verify.mb.${id}`] = String(def.verify);
+      defaults[`membership.mb.${id}`] = String(def.membership);
+    } else {
+      defaults[`verify.mb.${id}`] = "";
+      defaults[`membership.mb.${id}`] = "";
     }
-    for (const [k, v] of Object.entries(defaults)) {
-      await client.query(
-        `INSERT INTO config (key, value, updated_at) VALUES ($1, $2, $3) ON CONFLICT (key) DO NOTHING`,
-        [k, v, now]
-      );
-    }
-  } finally {
-    client.release();
+  }
+
+  const insertConfig = d.prepare(
+    `INSERT INTO config (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING`
+  );
+  for (const [k, v] of Object.entries(defaults)) {
+    insertConfig.run(k, v, now);
   }
 }
 
@@ -133,19 +124,18 @@ async function ensureInit() {
 
 export async function getConfig(): Promise<Record<string, string>> {
   await ensureInit();
-  const res = await getPool().query("SELECT key, value FROM config");
+  const rows = getDb().prepare("SELECT key, value FROM config").all() as Array<{ key: string; value: string }>;
   const out: Record<string, string> = {};
-  for (const r of res.rows) out[r.key] = r.value;
+  for (const r of rows) out[r.key] = r.value;
   return out;
 }
 
 export async function setConfig(key: string, value: string) {
   await ensureInit();
-  await getPool().query(
-    `INSERT INTO config (key, value, updated_at) VALUES ($1, $2, $3)
-     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at`,
-    [key, value, Date.now()]
-  );
+  getDb().prepare(
+    `INSERT INTO config (key, value, updated_at) VALUES (?, ?, ?)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`
+  ).run(key, value, Date.now());
 }
 
 export interface ToolThresholds { verifyMb: number; membershipMb: number; }
@@ -196,12 +186,11 @@ export async function getPublicConfig(): Promise<PublicConfig> {
 
 export async function verifyCode(code: string): Promise<{ ok: boolean; reason?: string }> {
   await ensureInit();
-  const res = await getPool().query("SELECT * FROM verification_codes WHERE code = $1", [code]);
-  if (res.rows.length === 0) return { ok: false, reason: "验证码不存在" };
-  const row = res.rows[0];
+  const row = getDb().prepare("SELECT * FROM verification_codes WHERE code = ?").get(code) as any;
+  if (!row) return { ok: false, reason: "验证码不存在" };
   if (row.used) return { ok: false, reason: "验证码已使用" };
   if (row.expires_at < Date.now()) return { ok: false, reason: "验证码已过期" };
-  await getPool().query("UPDATE verification_codes SET used = true, used_at = $1 WHERE code = $2", [Date.now(), code]);
+  getDb().prepare("UPDATE verification_codes SET used = 1, used_at = ? WHERE code = ?").run(Date.now(), code);
   return { ok: true };
 }
 
@@ -209,10 +198,9 @@ export async function createVerificationCode(minutes = 15): Promise<string> {
   await ensureInit();
   const code = Math.random().toString(36).slice(2, 8).toUpperCase();
   const now = Date.now();
-  await getPool().query(
-    "INSERT INTO verification_codes (code, used, created_at, expires_at) VALUES ($1, false, $2, $3)",
-    [code, now, now + minutes * 60 * 1000]
-  );
+  getDb().prepare(
+    "INSERT INTO verification_codes (code, used, created_at, expires_at) VALUES (?, 0, ?, ?)"
+  ).run(code, now, now + minutes * 60 * 1000);
   return code;
 }
 
@@ -225,18 +213,18 @@ export async function generateCodes(count: number, minutes: number): Promise<str
     const c = Math.random().toString(36).slice(2, 8).toUpperCase();
     if (!codes.includes(c)) codes.push(c);
   }
+  const stmt = getDb().prepare(
+    "INSERT OR IGNORE INTO verification_codes (code, used, created_at, expires_at) VALUES (?, 0, ?, ?)"
+  );
   for (const c of codes) {
-    await getPool().query(
-      "INSERT INTO verification_codes (code, used, created_at, expires_at) VALUES ($1, false, $2, $3) ON CONFLICT DO NOTHING",
-      [c, now, expires]
-    );
+    stmt.run(c, now, expires);
   }
   return codes;
 }
 
 export async function cleanExpiredCodes() {
   await ensureInit();
-  await getPool().query("DELETE FROM verification_codes WHERE expires_at < $1", [Date.now()]);
+  getDb().prepare("DELETE FROM verification_codes WHERE expires_at < ?").run(Date.now());
 }
 
 export async function createMembershipToken(tier: MembershipTier): Promise<string> {
@@ -245,10 +233,9 @@ export async function createMembershipToken(tier: MembershipTier): Promise<strin
   const now = Date.now();
   const tierDef = MEMBERSHIP_TIERS.find((t) => t.id === tier) ?? MEMBERSHIP_TIERS[2];
   const expiresAt = tierDef.days === 0 ? 0 : now + tierDef.days * 86_400_000;
-  await getPool().query(
-    "INSERT INTO membership_tokens (token, tier, active, created_at, expires_at) VALUES ($1, $2, true, $3, $4)",
-    [token, tier, now, expiresAt]
-  );
+  getDb().prepare(
+    "INSERT INTO membership_tokens (token, tier, active, created_at, expires_at) VALUES (?, ?, 1, ?, ?)"
+  ).run(token, tier, now, expiresAt);
   return token;
 }
 
@@ -256,18 +243,16 @@ export async function createTempMembershipToken(durationHours = 24): Promise<str
   await ensureInit();
   const token = "TEMP24-" + Math.random().toString(36).slice(2, 10).toUpperCase();
   const now = Date.now();
-  await getPool().query(
-    "INSERT INTO membership_tokens (token, tier, active, created_at, expires_at) VALUES ($1, 'temp24', true, $2, $3)",
-    [token, now, now + durationHours * 3600_000]
-  );
+  getDb().prepare(
+    "INSERT INTO membership_tokens (token, tier, active, created_at, expires_at) VALUES (?, 'temp24', 1, ?, ?)"
+  ).run(token, now, now + durationHours * 3600_000);
   return token;
 }
 
 export async function validateMembershipToken(token: string): Promise<{ ok: boolean; tier?: MembershipTier; expiresAt?: number; reason?: string }> {
   await ensureInit();
-  const res = await getPool().query("SELECT * FROM membership_tokens WHERE token = $1", [token]);
-  if (res.rows.length === 0) return { ok: false, reason: "会员码不存在" };
-  const row = res.rows[0];
+  const row = getDb().prepare("SELECT * FROM membership_tokens WHERE token = ?").get(token) as any;
+  if (!row) return { ok: false, reason: "会员码不存在" };
   if (!row.active) return { ok: false, reason: "会员码已停用" };
   if (row.expires_at !== 0 && row.expires_at < Date.now()) return { ok: false, reason: "会员已过期" };
   return { ok: true, tier: row.tier as MembershipTier, expiresAt: row.expires_at };
@@ -275,9 +260,9 @@ export async function validateMembershipToken(token: string): Promise<{ ok: bool
 
 export async function listMembershipTokens(limit = 50): Promise<any[]> {
   await ensureInit();
-  const res = await getPool().query("SELECT * FROM membership_tokens ORDER BY created_at DESC LIMIT $1", [limit]);
+  const rows = getDb().prepare("SELECT * FROM membership_tokens ORDER BY created_at DESC LIMIT ?").all(limit) as any[];
   const now = Date.now();
-  return res.rows.map((r: any) => {
+  return rows.map((r: any) => {
     const tier = MEMBERSHIP_TIERS.find((t) => t.id === r.tier) ?? MEMBERSHIP_TIERS[2];
     const isForever = r.expires_at === 0;
     const isActive = r.active && (isForever || r.expires_at >= now);
@@ -288,13 +273,12 @@ export async function listMembershipTokens(limit = 50): Promise<any[]> {
 
 export async function revokeMembershipToken(token: string) {
   await ensureInit();
-  await getPool().query("UPDATE membership_tokens SET active = false WHERE token = $1", [token]);
+  getDb().prepare("UPDATE membership_tokens SET active = 0 WHERE token = ?").run(token);
 }
 
 export async function listVerificationCodes(limit = 100): Promise<any[]> {
   await ensureInit();
-  const res = await getPool().query("SELECT * FROM verification_codes ORDER BY created_at DESC LIMIT $1", [limit]);
-  return res.rows;
+  return getDb().prepare("SELECT * FROM verification_codes ORDER BY created_at DESC LIMIT ?").all(limit) as any[];
 }
 
 export async function adminLogin(password: string): Promise<boolean> {
@@ -323,26 +307,26 @@ export interface UserRow {
 
 export async function findUserByEmail(email: string): Promise<UserRow | null> {
   await ensureInit();
-  const res = await getPool().query("SELECT * FROM users WHERE email = $1", [email.toLowerCase()]);
-  return res.rows.length > 0 ? res.rows[0] : null;
+  const row = getDb().prepare("SELECT * FROM users WHERE email = ?").get(email.toLowerCase()) as any;
+  return row ?? null;
 }
 
 export async function findUserByPhone(phone: string): Promise<UserRow | null> {
   await ensureInit();
-  const res = await getPool().query("SELECT * FROM users WHERE phone = $1", [phone.replace(/\D/g, "")]);
-  return res.rows.length > 0 ? res.rows[0] : null;
+  const row = getDb().prepare("SELECT * FROM users WHERE phone = ?").get(phone.replace(/\D/g, "")) as any;
+  return row ?? null;
 }
 
 export async function findUserByWechatOpenid(openid: string): Promise<UserRow | null> {
   await ensureInit();
-  const res = await getPool().query("SELECT * FROM users WHERE wechat_openid = $1", [openid]);
-  return res.rows.length > 0 ? res.rows[0] : null;
+  const row = getDb().prepare("SELECT * FROM users WHERE wechat_openid = ?").get(openid) as any;
+  return row ?? null;
 }
 
 export async function findUserById(id: number): Promise<UserRow | null> {
   await ensureInit();
-  const res = await getPool().query("SELECT * FROM users WHERE id = $1", [id]);
-  return res.rows.length > 0 ? res.rows[0] : null;
+  const row = getDb().prepare("SELECT * FROM users WHERE id = ?").get(id) as any;
+  return row ?? null;
 }
 
 export async function createUser(params: {
@@ -355,16 +339,27 @@ export async function createUser(params: {
 }): Promise<UserRow> {
   await ensureInit();
   const now = Date.now();
-  const res = await getPool().query(
-    `INSERT INTO users (login_method, email, phone, wechat_openid, nickname, avatar, created_at, last_login_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-    [params.loginMethod, params.email?.toLowerCase() ?? null, params.phone?.replace(/\D/g, "") ?? null, params.wechatOpenid ?? null, params.nickname ?? null, params.avatar ?? null, now, now]
+  const d = getDb();
+  d.prepare(
+    `INSERT INTO users (login_method, email, phone, wechat_openid, nickname, avatar, created_at, last_login_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    params.loginMethod,
+    params.email?.toLowerCase() ?? null,
+    params.phone?.replace(/\D/g, "") ?? null,
+    params.wechatOpenid ?? null,
+    params.nickname ?? null,
+    params.avatar ?? null,
+    now,
+    now
   );
-  return res.rows[0];
+  const row = d.prepare("SELECT * FROM users WHERE rowid = last_insert_rowid()").get() as any;
+  return row;
 }
 
 export async function touchUserLogin(userId: number) {
   await ensureInit();
-  await getPool().query("UPDATE users SET last_login_at = $1 WHERE id = $2", [Date.now(), userId]);
+  getDb().prepare("UPDATE users SET last_login_at = ? WHERE id = ?").run(Date.now(), userId);
 }
 
 export async function createLoginCode(
@@ -376,9 +371,15 @@ export async function createLoginCode(
   await ensureInit();
   const code = Math.random().toString(36).slice(2, 8).toUpperCase();
   const now = Date.now();
-  await getPool().query(
-    "INSERT INTO login_codes (email, phone, code, purpose, used, created_at, expires_at) VALUES ($1, $2, $3, $4, false, $5, $6)",
-    [type === "email" ? identifier.toLowerCase() : null, type === "phone" ? identifier : null, code, purpose, now, now + expiresMinutes * 60_000]
+  getDb().prepare(
+    "INSERT INTO login_codes (email, phone, code, purpose, used, created_at, expires_at) VALUES (?, ?, ?, ?, 0, ?, ?)"
+  ).run(
+    type === "email" ? identifier.toLowerCase() : null,
+    type === "phone" ? identifier : null,
+    code,
+    purpose,
+    now,
+    now + expiresMinutes * 60_000
   );
   return code;
 }
@@ -390,32 +391,24 @@ export async function verifyLoginCode(
   type: "email" | "phone" = "email"
 ): Promise<{ ok: boolean; reason?: string }> {
   await ensureInit();
-  let res;
+  let row: any;
   if (type === "phone") {
-    res = await getPool().query(
-      "SELECT * FROM login_codes WHERE phone = $1 AND code = $2 AND purpose = $3 AND used = false",
-      [identifier, code.toUpperCase(), purpose]
-    );
+    row = getDb().prepare("SELECT * FROM login_codes WHERE phone = ? AND code = ? AND purpose = ? AND used = 0").get(identifier, code.toUpperCase(), purpose);
   } else {
-    res = await getPool().query(
-      "SELECT * FROM login_codes WHERE email = $1 AND code = $2 AND purpose = $3 AND used = false",
-      [identifier.toLowerCase(), code.toUpperCase(), purpose]
-    );
+    row = getDb().prepare("SELECT * FROM login_codes WHERE email = ? AND code = ? AND purpose = ? AND used = 0").get(identifier.toLowerCase(), code.toUpperCase(), purpose);
   }
-  if (res.rows.length === 0) return { ok: false, reason: "验证码不存在" };
-  const row = res.rows[0];
+  if (!row) return { ok: false, reason: "验证码不存在" };
   if (row.expires_at < Date.now()) return { ok: false, reason: "验证码已过期" };
-  await getPool().query("UPDATE login_codes SET used = true WHERE id = $1", [row.id]);
+  getDb().prepare("UPDATE login_codes SET used = 1 WHERE id = ?").run(row.id);
   return { ok: true };
 }
 
 export async function findSession(token: string): Promise<{ userId: number } | null> {
   await ensureInit();
-  const res = await getPool().query("SELECT user_id, expires_at FROM sessions WHERE token = $1", [token]);
-  if (res.rows.length === 0) return null;
-  const row = res.rows[0];
+  const row = getDb().prepare("SELECT user_id, expires_at FROM sessions WHERE token = ?").get(token) as any;
+  if (!row) return null;
   if (row.expires_at < Date.now()) {
-    await getPool().query("DELETE FROM sessions WHERE token = $1", [token]);
+    getDb().prepare("DELETE FROM sessions WHERE token = ?").run(token);
     return null;
   }
   return { userId: row.user_id };
@@ -424,12 +417,12 @@ export async function findSession(token: string): Promise<{ userId: number } | n
 export async function createSession(userId: number, token: string, expiresDays = 30) {
   await ensureInit();
   const now = Date.now();
-  await getPool().query("INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES ($1, $2, $3, $4)", [token, userId, now, now + expiresDays * 86_400_000]);
+  getDb().prepare("INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)").run(token, userId, now, now + expiresDays * 86_400_000);
 }
 
 export async function deleteSession(token: string) {
   await ensureInit();
-  await getPool().query("DELETE FROM sessions WHERE token = $1", [token]);
+  getDb().prepare("DELETE FROM sessions WHERE token = ?").run(token);
 }
 
 export const MAX_SESSIONS = 3;
@@ -437,38 +430,33 @@ export const MAX_SESSIONS = 3;
 export async function enforceSessionLimit(userId: number, maxSessions: number = MAX_SESSIONS) {
   await ensureInit();
   const now = Date.now();
-  // Delete expired sessions first
-  await getPool().query("DELETE FROM sessions WHERE user_id = $1 AND expires_at < $2", [userId, now]);
-  // Count remaining active sessions
-  const countRes = await getPool().query("SELECT COUNT(*) as cnt FROM sessions WHERE user_id = $1", [userId]);
-  const count = parseInt(countRes.rows[0].cnt, 10);
-  // If at or over limit, delete oldest sessions to make room for the new one
+  getDb().prepare("DELETE FROM sessions WHERE user_id = ? AND expires_at < ?").run(userId, now);
+  const countRow = getDb().prepare("SELECT COUNT(*) as cnt FROM sessions WHERE user_id = ?").get(userId) as any;
+  const count = countRow?.cnt ?? 0;
   if (count >= maxSessions) {
     const toDelete = count - maxSessions + 1;
-    await getPool().query(
-      "DELETE FROM sessions WHERE token IN (SELECT token FROM sessions WHERE user_id = $1 ORDER BY created_at ASC LIMIT $2)",
-      [userId, toDelete]
-    );
+    getDb().prepare(
+      "DELETE FROM sessions WHERE token IN (SELECT token FROM sessions WHERE user_id = ? ORDER BY created_at ASC LIMIT ?)"
+    ).run(userId, toDelete);
   }
 }
 
 export async function bindMembershipToUser(userId: number, token: string): Promise<{ ok: boolean; tier?: MembershipTier; reason?: string }> {
   await ensureInit();
-  const client = await getPool().connect();
-  try {
-    await client.query("BEGIN");
-    const res = await client.query("SELECT * FROM membership_tokens WHERE token = $1 FOR UPDATE", [token]);
-    if (res.rows.length === 0) { await client.query("ROLLBACK"); return { ok: false, reason: "会员码不存在" }; }
-    const row = res.rows[0];
-    if (!row.active) { await client.query("ROLLBACK"); return { ok: false, reason: "会员码已停用" }; }
-    if (row.expires_at !== 0 && row.expires_at < Date.now()) { await client.query("ROLLBACK"); return { ok: false, reason: "会员码已过期" }; }
-    if (row.bound_user_id) { await client.query("ROLLBACK"); return { ok: false, reason: "会员码已被绑定到其他账号" }; }
+  const d = getDb();
+  const tx = d.transaction(() => {
+    const row = d.prepare("SELECT * FROM membership_tokens WHERE token = ?").get(token) as any;
+    if (!row) return { ok: false, reason: "会员码不存在" } as const;
+    if (!row.active) return { ok: false, reason: "会员码已停用" } as const;
+    if (row.expires_at !== 0 && row.expires_at < Date.now()) return { ok: false, reason: "会员码已过期" } as const;
+    if (row.bound_user_id) return { ok: false, reason: "会员码已被绑定到其他账号" } as const;
+
     const tierDef = MEMBERSHIP_TIERS.find((t) => t.id === row.tier) ?? MEMBERSHIP_TIERS[2];
     const now = Date.now();
-    const userRes = await client.query("SELECT * FROM users WHERE id = $1", [userId]);
-    if (userRes.rows.length === 0) { await client.query("ROLLBACK"); return { ok: false, reason: "用户不存在" }; }
-    const user = userRes.rows[0];
-    await client.query("UPDATE membership_tokens SET bound_user_id = $1, bound_at = $2 WHERE token = $3", [userId, now, token]);
+    const user = d.prepare("SELECT * FROM users WHERE id = ?").get(userId) as any;
+    if (!user) return { ok: false, reason: "用户不存在" } as const;
+
+    d.prepare("UPDATE membership_tokens SET bound_user_id = ?, bound_at = ? WHERE token = ?").run(userId, now, token);
     const isForever = tierDef.days === 0;
     const newExpires = isForever ? 0 : now + tierDef.days * 86_400_000;
     const currentExpires = user.membership_expires_at;
@@ -480,15 +468,10 @@ export async function bindMembershipToUser(userId: number, token: string): Promi
     else if (existingIsForever) { finalExpires = 0; finalTier = currentTier || row.tier; }
     else if ((currentExpires as number) > now) { finalExpires = isForever ? 0 : (currentExpires as number) + tierDef.days * 86_400_000; finalTier = row.tier; }
     else { finalExpires = newExpires; finalTier = row.tier; }
-    await client.query("UPDATE users SET membership_tier = $1, membership_expires_at = $2 WHERE id = $3", [finalTier, finalExpires, userId]);
-    await client.query("COMMIT");
+    d.prepare("UPDATE users SET membership_tier = ?, membership_expires_at = ? WHERE id = ?").run(finalTier, finalExpires, userId);
     return { ok: true, tier: row.tier as MembershipTier };
-  } catch (e) {
-    await client.query("ROLLBACK");
-    throw e;
-  } finally {
-    client.release();
-  }
+  });
+  return tx() as { ok: boolean; tier?: MembershipTier; reason?: string };
 }
 
 export function getUser(user: UserRow): UserRow & { isMember: boolean; tierInfo?: typeof MEMBERSHIP_TIERS[number]; remainingDays: number } {
@@ -509,18 +492,18 @@ export async function validateMembershipForUser(userId: number): Promise<{ ok: b
 
 export async function setUserPassword(userId: number, hashedPassword: string) {
   await ensureInit();
-  await getPool().query("UPDATE users SET password = $1, email_verified = true WHERE id = $2", [hashedPassword, userId]);
+  getDb().prepare("UPDATE users SET password = ?, email_verified = 1 WHERE id = ?").run(hashedPassword, userId);
 }
 
 export async function updateUserPassword(userId: number, hashedPassword: string) {
   await ensureInit();
-  await getPool().query("UPDATE users SET password = $1 WHERE id = $2", [hashedPassword, userId]);
+  getDb().prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, userId);
 }
 
 export async function hasPassword(userId: number): Promise<boolean> {
   await ensureInit();
-  const res = await getPool().query("SELECT password FROM users WHERE id = $1", [userId]);
-  return !!res.rows[0]?.password;
+  const row = getDb().prepare("SELECT password FROM users WHERE id = ?").get(userId) as any;
+  return !!row?.password;
 }
 
 export async function recordAdSuccessAndGrant(
@@ -530,20 +513,17 @@ export async function recordAdSuccessAndGrant(
 ): Promise<{ code: string; membershipCode?: string; rewardGranted: boolean; adCount: number }> {
   await ensureInit();
   const now = Date.now();
-
   const code = await createVerificationCode(15);
 
-  await getPool().query(
-    "INSERT INTO verification_records (identifier, identifier_type, ad_success, ad_unit_id, code, created_at) VALUES (, , true, , , )",
-    [identifier, identifierType, adUnitId || null, code, now]
-  );
+  getDb().prepare(
+    "INSERT INTO verification_records (identifier, identifier_type, ad_success, ad_unit_id, code, created_at) VALUES (?, ?, 1, ?, ?, ?)"
+  ).run(identifier, identifierType, adUnitId || null, code, now);
 
   const twelveHoursAgo = now - 12 * 3600_000;
-  const countRes = await getPool().query(
-    "SELECT COUNT(*) as cnt FROM verification_records WHERE identifier =  AND ad_success = true AND created_at >= ",
-    [identifier, twelveHoursAgo]
-  );
-  const adCount = parseInt(countRes.rows[0].cnt, 10);
+  const countRow = getDb().prepare(
+    "SELECT COUNT(*) as cnt FROM verification_records WHERE identifier = ? AND ad_success = 1 AND created_at >= ?"
+  ).get(identifier, twelveHoursAgo) as any;
+  const adCount = countRow?.cnt ?? 0;
 
   if (adCount === 3) {
     const membershipCode = await createMembershipToken("day");

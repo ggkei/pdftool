@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -15,13 +17,13 @@ type Action =
   | "dedup";
 
 const LABELS: { key: Action; label: string }[] = [
-  { key: "upper", label: "转大写" },
-  { key: "lower", label: "转小写" },
-  { key: "capitalize", label: "首字母大写" },
-  { key: "count", label: "统计字数" },
-  { key: "removeBlank", label: "去除空行" },
-  { key: "removeSpaces", label: "去除空格" },
-  { key: "dedup", label: "去重行" },
+  { key: "upper", label: t("util_text_tools.action_upper") },
+  { key: "lower", label: t("util_text_tools.action_lower") },
+  { key: "capitalize", label: t("util_text_tools.action_capitalize") },
+  { key: "count", label: t("util_text_tools.action_count") },
+  { key: "removeBlank", label: t("util_text_tools.action_remove_blank") },
+  { key: "removeSpaces", label: t("util_text_tools.action_remove_spaces") },
+  { key: "dedup", label: t("util_text_tools.action_dedup") },
 ];
 
 function capitalize(text: string): string {
@@ -90,7 +92,7 @@ export default function UtilTextToolsPage() {
   const runAction = (a: Action) => {
     if (a === "count") {
       setOutput(
-        `字符总数: ${stats.chars}\n不含空白: ${stats.charsNoSpace}\n词数: ${stats.words}\n行数: ${stats.lines}`
+t("util_text_tools.统计结果", {chars: stats.chars, charsNoSpace: stats.charsNoSpace, words: stats.words, lines: stats.lines})
       );
       return;
     }
@@ -111,7 +113,7 @@ export default function UtilTextToolsPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <ToolHeader title="文本工具箱" description="大小写转换、字数统计、去空行、去空格、行去重" />
+      <ToolHeader title={t("util_text_tools.title")} description={t("util_text_tools.desc")} />
 
       <div className="rounded-2xl bg-white/60 backdrop-blur shadow-soft border border-slate-200/70 p-6">
         <div className="flex flex-wrap gap-2">
@@ -129,9 +131,9 @@ export default function UtilTextToolsPage() {
         <div className="mt-4 grid md:grid-cols-2 gap-5">
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="text-xs font-medium text-zinc-500">输入文本</label>
+              <label className="text-xs font-medium text-zinc-500">{t("util_text_tools.label_input")}</label>
               <div className="text-[11px] text-slate-400">
-                {stats.chars} 字符 · {stats.words} 词 · {stats.lines} 行
+                {stats.chars} {t("util_common.字符")} · {stats.words} {t("util_common.词")} · {stats.lines} {t("util_common.行")}
               </div>
             </div>
             <textarea
@@ -139,26 +141,26 @@ export default function UtilTextToolsPage() {
               onChange={(e) => setInput(e.target.value)}
               rows={12}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-mono text-zinc-900 shadow-inner focus:border-primary-400 focus:outline-none focus:ring-4 focus:ring-primary-500/10 scrollbar-thin"
-              placeholder="在这里输入或粘贴文本..."
+              placeholder={t("util_text_tools.placeholder_input")}
             />
           </div>
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="text-xs font-medium text-zinc-500">处理结果</label>
+              <label className="text-xs font-medium text-zinc-500">{t("util_text_tools.label_output")}</label>
               <div className="flex items-center gap-2">
                 <button
                   onClick={swap}
                   className="text-xs text-slate-500 hover:text-primary-600"
-                  title="将结果作为新的输入"
+                  title={t("util_text_tools.use_as_input")}
                 >
-                  ↕ 交换
+                  ↕ {t("util_text_tools.交换")}
                 </button>
                 <button
                   onClick={copy}
                   disabled={!output}
                   className="text-xs text-primary-600 hover:text-primary-700 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
-                  {copied ? "✓ 已复制" : "复制结果"}
+                  {copied ? t("img_ocr.copied") : t("util_random.复制结果")}
                 </button>
               </div>
             </div>
@@ -167,17 +169,17 @@ export default function UtilTextToolsPage() {
               readOnly
               rows={12}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-mono text-zinc-900 shadow-inner focus:outline-none scrollbar-thin"
-              placeholder="点击上方按钮查看处理结果..."
+              placeholder={t("util_text_tools.placeholder")}
             />
           </div>
         </div>
 
         <div className="mt-4 grid grid-cols-4 gap-3">
           {[
-            { label: "总字符", val: stats.chars },
-            { label: "不含空白", val: stats.charsNoSpace },
-            { label: "词数", val: stats.words },
-            { label: "行数", val: stats.lines },
+            { label: t("util_text_tools.stat_chars"), val: stats.chars },
+            { label: t("util_text_tools.stat_no_space"), val: stats.charsNoSpace },
+            { label: t("util_text_tools.stat_words"), val: stats.words },
+            { label: t("util_text_tools.stat_lines"), val: stats.lines },
           ].map((s) => (
             <div key={s.label} className="rounded-lg bg-slate-50 p-3 text-center">
               <div className="text-[11px] text-slate-500">{s.label}</div>

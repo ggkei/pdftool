@@ -8,6 +8,7 @@ import { useFileGuard } from "@/hooks/useFileGuard";
 import { FileGuardModal } from "@/components/FileGuardModal";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 type Step = "upload" | "extracting" | "done";
 
@@ -39,7 +40,7 @@ export default function PdfExtractImagePage() {
     }
     setError("");
     if (!f.name.toLowerCase().endsWith(".pdf")) {
-      setError("请上传 PDF 文件");
+      setError(t("common.upload_pdf"));
       return;
     }
     const buf = await f.arrayBuffer();
@@ -55,10 +56,10 @@ export default function PdfExtractImagePage() {
       setImages(withUrls);
       setStep("done");
       if (extracted.length === 0) {
-        setError("未在 PDF 中检测到可提取的图片对象");
+        setError(t("pdf_extract_image.no_images"));
       }
     } catch (err: any) {
-      setError(err?.message || "提取失败");
+      setError(err?.message || t("pdf_extract_image.error_failed"));
       setStep("upload");
     }
   }, []);
@@ -126,8 +127,8 @@ export default function PdfExtractImagePage() {
       <>
       <main className="mx-auto max-w-5xl px-4 py-8">
         <ToolHeader
-          title="PDF 提取图片"
-          description="从 PDF 中批量提取所有原始图片，支持各种颜色空间"
+          title={t("pdf_extract_image.title")}
+          description={t("pdf_extract_image.desc")}
         />
         <div
           onClick={() => inputRef.current?.click()}
@@ -144,8 +145,8 @@ export default function PdfExtractImagePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <p className="mb-1 text-lg font-medium text-slate-700">点击上传 PDF，或拖到此处</p>
-          <p className="text-sm text-slate-500">支持 .pdf 格式</p>
+          <p className="mb-1 text-lg font-medium text-slate-700">{t("common.upload_pdf_click_hint")}</p>
+          <p className="text-sm text-slate-500">{t("common.pdf_format_support")}</p>
         </div>
         {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
                 <ToolUsage tool={getToolById("extract-image")!} />
@@ -168,10 +169,10 @@ export default function PdfExtractImagePage() {
     return (
       <>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <ToolHeader title="PDF 提取图片" description="正在解析..." />
+        <ToolHeader title={t("pdf_extract_image.title")} description={t("pdf_extract_image.parsing")} />
         <div className="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"></div>
-          <p className="text-slate-600">正在提取图片...</p>
+          <p className="text-slate-600">{t("pdf_extract_image.extracting")}</p>
         </div>
       </main>
       {guard.level && (
@@ -190,18 +191,18 @@ export default function PdfExtractImagePage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <ToolHeader title="PDF 提取图片" description={`从 ${fileName} 中提取了 ${images.length} 张图片`} />
+      <ToolHeader title={t("pdf_extract_image.title")} description={t("pdf_extract_image.result_desc", { name: fileName, count: images.length })} />
 
       <div className="mb-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
         <div className="flex-1 text-sm text-slate-600">
-          共 <span className="font-semibold text-primary-600">{images.length}</span> 张图片
-          · 合计 <span className="font-semibold">{formatSize(images.reduce((s, i) => s + i.size, 0))}</span>
+          {t("common.count_prefix")} <span className="font-semibold text-primary-600">{images.length}</span> {t("common.images_unit")}
+          · {t("pdf_extract_image.total_label")} <span className="font-semibold">{formatSize(images.reduce((s, i) => s + i.size, 0))}</span>
         </div>
         <button onClick={handleDownloadAll} disabled={images.length === 0}
           className="rounded-lg bg-primary-600 px-4 py-2 text-xs font-semibold text-white hover:bg-primary-700 disabled:bg-slate-300">
-          📦 全部下载 (ZIP)
+          {t("pdf_extract_image.download_zip")}
         </button>
-        <button onClick={handleReset} className="text-xs text-slate-400 hover:text-red-500">处理其他文件</button>
+        <button onClick={handleReset} className="text-xs text-slate-400 hover:text-red-500">{t("common.process_another")}</button>
       </div>
 
       {error && <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">{error}</div>}
@@ -222,7 +223,7 @@ export default function PdfExtractImagePage() {
               </div>
               <button onClick={() => handleDownloadOne(img)}
                 className="rounded bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600 hover:bg-primary-100 hover:text-primary-600">
-                下载
+                {t("common.download")}
               </button>
             </div>
           </div>

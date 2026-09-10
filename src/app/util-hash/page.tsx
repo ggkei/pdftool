@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import Link from "next/link";
 import { useState } from "react";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -195,7 +197,7 @@ export default function Page() {
       setOutput(result);
       setStatus("ok");
     } catch (e: any) {
-      setStatus("error"); setOutput(e.message || "计算失败");
+      setStatus("error"); setOutput(e.message || t("util_hash.error_failed"));
     } finally {
       setRunning(false);
     }
@@ -213,7 +215,7 @@ export default function Page() {
   }
 
   function sampleText() {
-    setInput("Hello, World! 你好世界 🌍");
+    setInput(t("util_hash.HelloWorld你好世界"));
   }
 
   const currentAlgo = ALGOS.find(a => a.value === algo);
@@ -225,10 +227,10 @@ export default function Page() {
           <svg className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 19l-7-7 7-7" />
           </svg>
-          返回工具箱
+          {t("common.back_to_tools")}
         </Link>
-        <h1 className="font-display text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">哈希生成器</h1>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">生成 MD5、SHA-1、SHA-256、SHA-384、SHA-512 哈希值，支持 Unicode 字符</p>
+        <h1 className="font-display text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{t("util_hash.title")}</h1>
+        <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">{t("util_hash.desc")}</p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -240,15 +242,15 @@ export default function Page() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </span>
-              <h2 className="text-sm font-semibold text-zinc-800">输入文本</h2>
-              <span className="text-[11px] text-zinc-400">{input.length} 字符</span>
+              <h2 className="text-sm font-semibold text-zinc-800">{t("util_hash.input_title")}</h2>
+              <span className="text-[11px] text-zinc-400">{t("common.n_chars", {n: input.length})}</span>
             </div>
-            <button onClick={sampleText} className="text-xs text-brand-600 hover:text-brand-700 font-medium">填充示例</button>
+            <button onClick={sampleText} className="text-xs text-brand-600 hover:text-brand-700 font-medium">{t("util_common.fill_sample")}</button>
           </div>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="输入需要计算哈希的文本..."
+            placeholder={t("util_hash.placeholder")}
             spellCheck={false}
             className="h-[340px] w-full resize-none bg-transparent px-5 py-4 font-mono text-[13px] text-zinc-800 placeholder:text-zinc-300 focus:outline-none scrollbar-thin"
           />
@@ -275,21 +277,21 @@ export default function Page() {
                   </svg>
                 )}
               </span>
-              <h2 className="text-sm font-semibold text-zinc-800">输出 ({currentAlgo?.label})</h2>
-              {currentAlgo && <span className="text-[11px] text-zinc-400">{currentAlgo.length} 字符</span>}
+              <h2 className="text-sm font-semibold text-zinc-800">{t("util_hash.output_label", {label: currentAlgo?.label || ""})}</h2>
+              {currentAlgo && <span className="text-[11px] text-zinc-400">{t("common.n_chars", {n: currentAlgo.length})}</span>}
             </div>
             <button onClick={copyOutput} disabled={!output}
               className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-zinc-600 hover:bg-slate-50 disabled:opacity-40">
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              {copied ? "已复制" : "复制"}
+              {copied ? t("util_common.copied") : t("util_common.copy")}
             </button>
           </div>
           <textarea
             value={output}
             readOnly
-            placeholder="哈希值将显示在这里"
+            placeholder={t("util_hash.placeholder_output")}
             spellCheck={false}
             className="h-[340px] w-full resize-none bg-transparent px-5 py-4 font-mono text-[13px] text-zinc-800 placeholder:text-zinc-300 focus:outline-none scrollbar-thin"
           />
@@ -298,7 +300,7 @@ export default function Page() {
 
       <div className="mt-5 rounded-2xl border border-slate-200/70 bg-white shadow-soft p-4">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs font-medium text-zinc-600">算法</span>
+          <span className="text-xs font-medium text-zinc-600">{t("util_hash.label_algorithm")}</span>
           <div className="flex flex-wrap rounded-lg bg-slate-100 p-1 text-xs gap-0.5">
             {ALGOS.map(a => (
               <button key={a.value} onClick={() => setAlgo(a.value)}
@@ -312,17 +314,17 @@ export default function Page() {
           <div className="ml-auto flex items-center gap-2">
             <button onClick={doHash} disabled={running || !input}
               className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-card hover:bg-brand-700 hover:shadow-glow active:scale-[0.98] transition-all disabled:opacity-50">
-              {running ? "计算中..." : (
+              {running ? t("util_hash.processing") : (
                 <>
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  计算哈希
+                  {t("util_hash.计算哈希")}
                 </>
               )}
             </button>
             <button onClick={clearAll} className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-soft hover:border-slate-300 hover:bg-slate-50 transition-all">
-              清空
+              {t("util_common.清空")}
             </button>
           </div>
         </div>

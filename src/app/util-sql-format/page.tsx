@@ -6,7 +6,7 @@ import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
 import { t, getLangQuery } from "@/i18n/dictionary";
 
-/* ── SQL 词法分析 ─────────────────────────── */
+/* ── SQL Lexer ─────────────────────────────── */
 
 type TokenType =
   | "keyword"
@@ -67,7 +67,7 @@ function tokenize(sql: string): Token[] {
   while (i < sql.length) {
     const ch = sql[i];
 
-    // 单行注释 --
+    // single-line comment --
     if (ch === "-" && peek(2) === "--") {
       let v = "";
       while (i < sql.length && sql[i] !== "\n") v += consume(1);
@@ -75,7 +75,7 @@ function tokenize(sql: string): Token[] {
       continue;
     }
 
-    // 多行注释 /* */
+    // multi-line comment /* */
     if (ch === "/" && peek(2) === "/*") {
       let v = consume(2);
       while (i < sql.length && !(v.endsWith("*/"))) v += consume(1);
@@ -83,7 +83,7 @@ function tokenize(sql: string): Token[] {
       continue;
     }
 
-    // 字符串 '...' / "..." / `...`
+    // string literals '...' / "..." / `...`
     if (ch === "'" || ch === '"' || ch === "`") {
       const quote = ch;
       let v = consume(1);
@@ -96,7 +96,7 @@ function tokenize(sql: string): Token[] {
       continue;
     }
 
-    // 数字
+    // numbers
     if (/\d/.test(ch)) {
       let v = "";
       while (i < sql.length && (/\d/.test(sql[i]) || sql[i] === ".")) v += consume(1);
@@ -104,7 +104,7 @@ function tokenize(sql: string): Token[] {
       continue;
     }
 
-    // 空白
+    // whitespace
     if (/\s/.test(ch)) {
       let v = "";
       while (i < sql.length && /\s/.test(sql[i])) v += consume(1);
@@ -112,7 +112,7 @@ function tokenize(sql: string): Token[] {
       continue;
     }
 
-    // 运算符 / 标点
+    // operators / punctuation
     const two = peek(2);
     if (["!=","<>",">=","<=","||","->","->>","::","<<",">>","&&"].includes(two)) {
       tokens.push({ type: "operator", value: consume(2) });
@@ -127,7 +127,7 @@ function tokenize(sql: string): Token[] {
       continue;
     }
 
-    // 标识符 / 关键字 / 函数
+    // identifiers / keywords / functions
     let v = "";
     while (i < sql.length && /[A-Za-z0-9_\$]/.test(sql[i])) v += consume(1);
     const upper = v.toUpperCase();
@@ -140,7 +140,7 @@ function tokenize(sql: string): Token[] {
   return tokens;
 }
 
-/* ── 格式化引擎 ────────────────────────────── */
+/* ── Formatter Engine ───────────────────────── */
 
 function formatSql(sql: string): string {
   const tokens = tokenize(sql);
@@ -166,7 +166,7 @@ function formatSql(sql: string): string {
     const next = tokens[idx + 1] ?? null;
 
     if (t.type === "whitespace") {
-      // 在适当位置保留一个空格
+      // keep one space where appropriate
       if (prev && needsSpaceBefore(next ?? t, prev)) {
         if (!result.endsWith(" ") && !result.endsWith("\n")) result += " ";
       }
@@ -182,10 +182,10 @@ function formatSql(sql: string): string {
 
     const upper = t.value.toUpperCase();
 
-    // 主要关键字换行并缩进
+    // newline and indent major keywords
     if (t.type === "keyword" && ["SELECT","FROM","WHERE","JOIN","LEFT","RIGHT","INNER","OUTER","CROSS","UNION","INTERSECT","EXCEPT","GROUP","ORDER","HAVING","LIMIT","OFFSET","WITH","INSERT","UPDATE","DELETE","CREATE","ALTER","DROP","VALUES","SET","ON","AND","OR"].includes(upper)) {
       if (result && !result.endsWith("\n")) result += " ";
-      // 缩进调整
+      // indent adjustment
       if (["SELECT","INSERT","UPDATE","DELETE","WITH","CREATE","ALTER","DROP"].includes(upper)) {
         indent = 0;
       } else if (["FROM","WHERE","JOIN","LEFT","RIGHT","INNER","OUTER","CROSS","UNION","INTERSECT","EXCEPT","GROUP","ORDER","HAVING","LIMIT","OFFSET","VALUES","SET","ON"].includes(upper)) {
@@ -220,7 +220,7 @@ function minifySql(sql: string): string {
   return sql.replace(/\s+/g, " ").trim();
 }
 
-/* ── HTML 高亮 ─────────────────────────────── */
+/* ── HTML Highlight ─────────────────────────── */
 
 function highlightSql(sql: string): string {
   const tokens = tokenize(sql);
@@ -252,7 +252,7 @@ function highlightSql(sql: string): string {
     .join("");
 }
 
-/* ── 页面组件 ────────────────────────────── */
+/* ── Page Component ─────────────────────────── */
 
 export default function Page() {
   const [input, setInput] = useState("");
@@ -319,7 +319,7 @@ LIMIT 20 OFFSET 0;`
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* 输入区 */}
+        {/* input area */}
         <section className="rounded-2xl border border-slate-200/70 bg-white shadow-soft">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
             <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ LIMIT 20 OFFSET 0;`
           />
         </section>
 
-        {/* 输出区 */}
+        {/* output area */}
         <section className="rounded-2xl border border-slate-200/70 bg-white shadow-soft flex flex-col">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
             <div className="flex items-center gap-2">
@@ -363,7 +363,7 @@ LIMIT 20 OFFSET 0;`
             </button>
           </div>
 
-          {/* 语法高亮输出 */}
+          {/* syntax highlight output */}
           <div className="flex-1 overflow-auto">
             {output ? (
               <pre
@@ -379,7 +379,7 @@ LIMIT 20 OFFSET 0;`
         </section>
       </div>
 
-      {/* 操作栏 */}
+      {/* action bar */}
       <div className="mt-5 rounded-2xl border border-slate-200/70 bg-white shadow-soft p-4">
         <div className="flex flex-wrap items-center gap-2">
           <button onClick={doFormat}

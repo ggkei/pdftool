@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useState } from "react";
 import QRCode from "qrcode";
 import { ToolHeader } from "@/components/ToolHeader";
@@ -7,10 +9,10 @@ import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
 
 const EC_LEVELS: { value: "L" | "M" | "Q" | "H"; label: string; desc: string }[] = [
-  { value: "L", label: "L", desc: "7% 容错" },
-  { value: "M", label: "M", desc: "15% 容错" },
-  { value: "Q", label: "Q", desc: "25% 容错" },
-  { value: "H", label: "H", desc: "30% 容错" },
+  { value: "L", label: "L", desc: t("util_qrcode.ec_l") },
+  { value: "M", label: "M", desc: t("util_qrcode.ec_m") },
+  { value: "Q", label: "Q", desc: t("util_qrcode.ec_q") },
+  { value: "H", label: "H", desc: t("util_qrcode.ec_h") },
 ];
 
 export default function UtilQrcodePage() {
@@ -25,7 +27,7 @@ export default function UtilQrcodePage() {
   const generate = async () => {
     setError("");
     if (!text.trim()) {
-      setError("请输入要编码的文本或链接");
+      setError(t("util_qrcode.error_empty"));
       return;
     }
     try {
@@ -38,7 +40,7 @@ export default function UtilQrcodePage() {
       setQrUrl(url);
       setGenerated(true);
     } catch (e: any) {
-      setError(e.message || "生成失败");
+      setError(e.message || t("util_qrcode.error_failed"));
     }
   };
 
@@ -56,25 +58,25 @@ export default function UtilQrcodePage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <ToolHeader title="二维码生成器" description="输入文本或链接，一键生成可下载的二维码图片" />
+      <ToolHeader title={t("util_qrcode.title")} description={t("util_qrcode.desc")} />
 
       <div className="rounded-2xl bg-white/60 backdrop-blur shadow-soft border border-slate-200/70 p-6">
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-500">文本 / URL</label>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">{t("util_qrcode.label_text")}</label>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 rows={4}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-inner focus:border-primary-400 focus:outline-none focus:ring-4 focus:ring-primary-500/10 scrollbar-thin"
-                placeholder="输入链接、文本、WiFi 信息等..."
+                placeholder={t("util_qrcode.placeholder_input")}
               />
             </div>
 
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-500">
-                尺寸: <span className="text-primary-600 font-semibold">{size}px</span>
+                {t("util_qrcode.尺寸")}: <span className="text-primary-600 font-semibold">{size}px</span>
               </label>
               <input
                 type="range"
@@ -92,7 +94,7 @@ export default function UtilQrcodePage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-500">纠错级别</label>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">{t("util_qrcode.label_ec")}</label>
               <div className="flex gap-2">
                 {EC_LEVELS.map((l) => (
                   <button
@@ -121,7 +123,7 @@ export default function UtilQrcodePage() {
               onClick={generate}
               className="w-full rounded-xl bg-primary-600 py-2.5 text-sm font-semibold text-white shadow-card hover:bg-primary-700 hover:shadow-glow active:scale-[0.98] transition"
             >
-              🔳 生成二维码
+              {t("util_qrcode.生成二维码")}
             </button>
           </div>
 
@@ -141,7 +143,7 @@ export default function UtilQrcodePage() {
               ) : (
                 <div className="text-center text-slate-400">
                   <div className="text-5xl mb-2">🔲</div>
-                  <div className="text-sm">点击生成按钮预览二维码</div>
+                  <div className="text-sm">{t("util_qrcode.preview_hint")}</div>
                 </div>
               )}
             </div>
@@ -150,7 +152,7 @@ export default function UtilQrcodePage() {
                 onClick={download}
                 className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-medium text-zinc-700 shadow-soft transition hover:border-primary-400 hover:text-primary-600"
               >
-                💾 {downloaded ? "✓ 已下载" : "下载 PNG"}
+                💾 {downloaded ? t("util_qrcode.downloaded") : t("util_qrcode.download_png")}
               </button>
             )}
           </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -14,10 +16,10 @@ interface BmiCategory {
 }
 
 const CATEGORIES: BmiCategory[] = [
-  { name: "偏瘦", range: "< 18.5", color: "text-blue-700", bgColor: "bg-blue-50 border-blue-200", description: "体重偏轻，建议增加营养摄入，适当力量训练，增强体质。" },
-  { name: "正常", range: "18.5 - 23.9", color: "text-green-700", bgColor: "bg-green-50 border-green-200", description: "体重在健康范围内，请继续保持规律饮食和运动习惯。" },
-  { name: "偏胖", range: "24 - 27.9", color: "text-amber-700", bgColor: "bg-amber-50 border-amber-200", description: "体重略高，建议控制饮食热量，增加有氧运动。" },
-  { name: "肥胖", range: "≥ 28", color: "text-red-700", bgColor: "bg-red-50 border-red-200", description: "体重超标，建议在专业人士指导下科学减重，关注心血管健康。" },
+  { name: t("util_bmi.cat_thin"), range: "< 18.5", color: "text-blue-700", bgColor: "bg-blue-50 border-blue-200", description: t("util_bmi.desc_thin") },
+  { name: t("util_bmi.cat_normal"), range: "18.5 - 23.9", color: "text-green-700", bgColor: "bg-green-50 border-green-200", description: t("util_bmi.desc_normal") },
+  { name: t("util_bmi.cat_overweight"), range: "24 - 27.9", color: "text-amber-700", bgColor: "bg-amber-50 border-amber-200", description: t("util_bmi.desc_overweight") },
+  { name: t("util_bmi.cat_obese"), range: "≥ 28", color: "text-red-700", bgColor: "bg-red-50 border-red-200", description: t("util_bmi.desc_obese") },
 ];
 
 function getCategory(bmi: number): BmiCategory {
@@ -56,13 +58,13 @@ export default function Page() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <ToolHeader title="BMI 计算器" description="计算身体质量指数，评估体重是否在健康范围内" />
+      <ToolHeader title={t("util_bmi.title")} description={t("util_bmi.desc")} />
 
       <section className="card p-6 space-y-5 animate-slide-up">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1.5 flex items-center justify-between text-sm font-medium text-zinc-700">
-              身高
+              {t("util_bmi.身高")}
               <span className="text-xs text-zinc-400">cm</span>
             </label>
             <input
@@ -73,12 +75,12 @@ export default function Page() {
               value={height}
               onChange={(e) => setHeight(e.target.value)}
               className="input-base"
-              placeholder="例如 170"
+              placeholder={t("util_bmi.placeholder_height")}
             />
           </div>
           <div>
             <label className="mb-1.5 flex items-center justify-between text-sm font-medium text-zinc-700">
-              体重
+              {t("util_bmi.体重")}
               <span className="text-xs text-zinc-400">kg</span>
             </label>
             <input
@@ -89,7 +91,7 @@ export default function Page() {
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               className="input-base"
-              placeholder="例如 65"
+              placeholder={t("util_bmi.placeholder_weight")}
             />
           </div>
         </div>
@@ -99,7 +101,7 @@ export default function Page() {
         <section className="mt-6 animate-slide-up">
           <div className={`card p-6 border ${bmiInfo.category.bgColor}`}>
             <div className="text-center">
-              <div className="text-xs text-zinc-500 mb-1">您的 BMI 指数</div>
+              <div className="text-xs text-zinc-500 mb-1">{t("util_bmi.your_bmi")}</div>
               <div className={`font-display text-5xl font-bold ${bmiInfo.category.color}`}>
                 {bmiInfo.bmi.toFixed(1)}
               </div>
@@ -122,12 +124,12 @@ export default function Page() {
                 />
               </div>
               <div className="mt-3 flex justify-between text-[10px] text-zinc-500">
-                <span>偏瘦</span><span>正常</span><span>偏胖</span><span>肥胖</span>
+                <span>{t("util_bmi.cat_thin")}</span><span>{t("util_bmi.cat_normal")}</span><span>{t("util_bmi.cat_overweight")}</span><span>{t("util_bmi.cat_obese")}</span>
               </div>
             </div>
 
             <div className="mt-5 rounded-xl bg-white/80 backdrop-blur p-4">
-              <div className="text-xs text-zinc-500 mb-1">健康体重范围</div>
+              <div className="text-xs text-zinc-500 mb-1">{t("util_bmi.healthy_range")}</div>
               <div className="font-display text-xl font-bold text-zinc-800">
                 {bmiInfo.healthyMin.toFixed(1)} - {bmiInfo.healthyMax.toFixed(1)} kg
               </div>
@@ -153,12 +155,12 @@ export default function Page() {
 
       {!bmiInfo && (
         <div className="mt-6 card p-8 text-center text-zinc-400 text-sm animate-fade-in">
-          请输入有效的身高和体重
+          {t("util_bmi.请输入有效的身高和体重")}
         </div>
       )}
 
       <p className="mt-5 text-center text-xs text-zinc-400">
-        BMI 为通用健康指标，不适用于孕妇、运动员、老年人等特殊人群
+        {t("util_bmi.BMI为通用健康指标不适用于孕")}
       </p>
             <ToolUsage tool={getToolById("bmi")!} />
 </main>

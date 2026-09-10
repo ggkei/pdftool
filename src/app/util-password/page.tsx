@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -72,10 +74,10 @@ function calcStrength(pwd: string, opts: { upper: boolean; lower: boolean; digit
   if (opts.symbols) variety++;
   score += Math.min(variety - 1, 3);
 
-  if (score <= 2) return { score: 25, label: "弱", color: "bg-red-500" };
-  if (score <= 4) return { score: 55, label: "中", color: "bg-amber-500" };
-  if (score <= 6) return { score: 80, label: "强", color: "bg-emerald-500" };
-  return { score: 100, label: "极强", color: "bg-green-600" };
+  if (score <= 2) return { score: 25, label: t("util_password.weak"), color: "bg-red-500" };
+  if (score <= 4) return { score: 55, label: t("util_password.medium"), color: "bg-amber-500" };
+  if (score <= 6) return { score: 80, label: t("util_password.strong"), color: "bg-emerald-500" };
+  return { score: 100, label: t("util_password.very_strong"), color: "bg-green-600" };
 }
 
 export default function UtilPasswordPage() {
@@ -136,7 +138,7 @@ export default function UtilPasswordPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <ToolHeader title="密码生成器" description="自定义长度与字符类型，生成高强度随机密码" />
+      <ToolHeader title={t("util_password.title")} description={t("util_password.desc")} />
 
       <div className="rounded-2xl bg-white/60 backdrop-blur shadow-soft border border-slate-200/70 p-6">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-inner">
@@ -146,14 +148,14 @@ export default function UtilPasswordPage() {
                 ? visible
                   ? password
                   : "•".repeat(password.length)
-                : "点击下方按钮生成密码"}
+                : t("util_password.click_to_generate")}
             </code>
             {password && (
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setVisible((v) => !v)}
                   className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-500 hover:border-primary-400 hover:text-primary-600"
-                  title={visible ? "隐藏" : "显示"}
+                  title={visible ? t("util_password.hide") : t("util_password.show")}
                 >
                   {visible ? "🙈" : "👁"}
                 </button>
@@ -161,7 +163,7 @@ export default function UtilPasswordPage() {
                   onClick={copy}
                   className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-primary-600 hover:border-primary-400"
                 >
-                  {copied ? "✓ 已复制" : "复制"}
+                  {copied ? t("img_ocr.copied") : t("img_base64.copy")}
                 </button>
               </div>
             )}
@@ -169,7 +171,7 @@ export default function UtilPasswordPage() {
           {password && (
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-slate-500">密码强度</span>
+                <span className="text-slate-500">{t("util_password.strength")}</span>
                 <span className="font-semibold text-zinc-700">{strength.label}</span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
@@ -185,7 +187,7 @@ export default function UtilPasswordPage() {
         <div className="mt-5 grid md:grid-cols-2 gap-5">
           <div>
             <label className="mb-1 block text-xs font-medium text-zinc-500">
-              密码长度: <span className="text-primary-600 font-semibold">{length}</span>
+              {t("util_password.密码长度")}: <span className="text-primary-600 font-semibold">{length}</span>
             </label>
             <input
               type="range"
@@ -201,12 +203,12 @@ export default function UtilPasswordPage() {
             </div>
           </div>
           <div>
-            <label className="mb-2 block text-xs font-medium text-zinc-500">字符类型</label>
+            <label className="mb-2 block text-xs font-medium text-zinc-500">{t("util_password.label_charset")}</label>
             <div className="grid grid-cols-2 gap-2">
-              <Checkbox checked={upper} onChange={setUpper} label="大写 A-Z" />
-              <Checkbox checked={lower} onChange={setLower} label="小写 a-z" />
-              <Checkbox checked={digits} onChange={setDigits} label="数字 0-9" />
-              <Checkbox checked={symbols} onChange={setSymbols} label="特殊符号" />
+              <Checkbox checked={upper} onChange={setUpper} label={t("util_password.upper")} />
+              <Checkbox checked={lower} onChange={setLower} label={t("util_password.lower")} />
+              <Checkbox checked={digits} onChange={setDigits} label={t("util_password.digits")} />
+              <Checkbox checked={symbols} onChange={setSymbols} label={t("util_password.symbols")} />
             </div>
           </div>
         </div>
@@ -215,7 +217,7 @@ export default function UtilPasswordPage() {
           <Checkbox
             checked={excludeAmbiguous}
             onChange={setExcludeAmbiguous}
-            label="排除易混淆字符 (O / 0 / I / l / 1)"
+            label={t("util_password.exclude_similar")}
           />
         </div>
 
@@ -223,7 +225,7 @@ export default function UtilPasswordPage() {
           onClick={doGenerate}
           className="mt-5 w-full rounded-xl bg-primary-600 py-2.5 text-sm font-semibold text-white shadow-card hover:bg-primary-700 hover:shadow-glow active:scale-[0.98] transition"
         >
-          🎲 生成随机密码
+          {t("util_password.生成随机密码")}
         </button>
       </div>
             <ToolUsage tool={getToolById("password")!} />

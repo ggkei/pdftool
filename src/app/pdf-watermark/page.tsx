@@ -7,6 +7,7 @@ import { FileGuardModal } from "@/components/FileGuardModal";
 import { addWatermarkToPdf, type WatermarkOptions } from "@/lib/pdf/addWatermark";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 type Step = "config" | "processing" | "done";
 
@@ -23,7 +24,7 @@ export default function PdfWatermarkPage() {
   const [totalPages, setTotalPages] = useState(0);
 
   const [type, setType] = useState<"text" | "image">("text");
-  const [text, setText] = useState("机密文件");
+  const [text, setText] = useState(t("pdf_watermark.default_text"));
   const [fontSize, setFontSize] = useState(48);
   const [color, setColor] = useState("#c00000");
   const [opacity, setOpacity] = useState(30);
@@ -44,7 +45,7 @@ export default function PdfWatermarkPage() {
       return;
     }
     setError("");
-    if (!f.name.toLowerCase().endsWith(".pdf")) { setError("请上传 PDF 文件"); return; }
+    if (!f.name.toLowerCase().endsWith(".pdf")) { setError(t("common.upload_pdf")); return; }
     setFileName(f.name);
     setInputBytes(new Uint8Array(await f.arrayBuffer()));
     setOutputBytes(null);
@@ -53,7 +54,7 @@ export default function PdfWatermarkPage() {
 
   const handleImgFile = useCallback(async (f: File | null) => {
     if (!f) { setImgFile(null); setImgBytes(null); return; }
-    if (!/\.(png|jpe?g)$/i.test(f.name)) { setError("图片水印仅支持 PNG 或 JPG"); return; }
+    if (!/\.(png|jpe?g)$/i.test(f.name)) { setError(t("pdf_watermark.error_img_format")); return; }
     setImgFile(f);
     setImgBytes(new Uint8Array(await f.arrayBuffer()));
     setError("");
@@ -67,7 +68,7 @@ export default function PdfWatermarkPage() {
 
   const handleApply = useCallback(async () => {
     if (!inputBytes) return;
-    if (type === "image" && !imgBytes) { setError("请先上传水印图片"); return; }
+    if (type === "image" && !imgBytes) { setError(t("pdf_watermark.error_no_img")); return; }
     setError(""); setStep("processing");
     const opts: WatermarkOptions = {
       type, text: type === "text" ? text : undefined,
@@ -80,7 +81,7 @@ export default function PdfWatermarkPage() {
       setOutputBytes(outputBytes);
       setStep("done");
     } catch (err: any) {
-      setError(err?.message || "添加水印失败");
+      setError(err?.message || t("pdf_watermark.error_failed"));
       setStep("config");
     }
   }, [inputBytes, type, text, fontSize, color, opacity, rotation, imgScale, imgBytes]);
@@ -120,7 +121,7 @@ export default function PdfWatermarkPage() {
     return (
       <>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <ToolHeader title="PDF 加水印" description="在每页添加文字或图片水印" />
+        <ToolHeader title={t("pdf_watermark.title")} description={t("pdf_watermark.desc")} />
         <div onClick={() => inputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -134,8 +135,8 @@ export default function PdfWatermarkPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <p className="mb-1 text-lg font-medium text-slate-700">点击上传 PDF，或拖到此处</p>
-          <p className="text-sm text-slate-500">支持 .pdf 格式</p>
+          <p className="mb-1 text-lg font-medium text-slate-700">{t("common.upload_pdf_click_hint")}</p>
+          <p className="text-sm text-slate-500">{t("common.pdf_format_support")}</p>
         </div>
         {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
                 <ToolUsage tool={getToolById("watermark")!} />
@@ -159,10 +160,10 @@ export default function PdfWatermarkPage() {
     return (
       <>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <ToolHeader title="PDF 加水印" description={fileName} />
+        <ToolHeader title={t("pdf_watermark.title")} description={fileName} />
         <div className="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"></div>
-          <p className="text-slate-600">正在添加水印...</p>
+          <p className="text-slate-600">{t("pdf_watermark.adding")}</p>
         </div>
       </main>
       {guard.level && (
@@ -184,24 +185,24 @@ export default function PdfWatermarkPage() {
     return (
       <>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <ToolHeader title="PDF 加水印" description="已完成！" />
+        <ToolHeader title={t("pdf_watermark.title")} description={t("pdf_watermark.done")} />
         <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h3 className="mb-2 text-xl font-semibold text-slate-800">水印已添加成功</h3>
-          <p className="mb-6 text-sm text-slate-500">共处理 {totalPages} 页</p>
+          <h3 className="mb-2 text-xl font-semibold text-slate-800">{t("pdf_watermark.success")}</h3>
+          <p className="mb-6 text-sm text-slate-500">{t("pdf_watermark.processed", { count: totalPages })}</p>
           <div className="flex justify-center gap-3">
             <button onClick={handleDownload} className="rounded-lg bg-primary-600 px-6 py-2 text-sm font-semibold text-white hover:bg-primary-700">
-              💾 下载加水印后的 PDF
+              {t("pdf_watermark.download_btn")}
             </button>
             <button onClick={handleReset} className="rounded-lg border border-slate-300 bg-white px-6 py-2 text-sm text-slate-600 hover:bg-slate-50">
-              重新设置
+              {t("pdf_watermark.reset")}
             </button>
             <button onClick={handleNew} className="rounded-lg border border-slate-300 bg-white px-6 py-2 text-sm text-slate-600 hover:bg-slate-50">
-              处理其他文件
+              {t("common.process_another")}
             </button>
           </div>
         </div>
@@ -223,27 +224,27 @@ export default function PdfWatermarkPage() {
   // Config
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <ToolHeader title="PDF 加水印" description={fileName} />
+      <ToolHeader title={t("pdf_watermark.title")} description={fileName} />
       <div className="grid gap-4 md:grid-cols-[320px_1fr]">
         <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex rounded-lg bg-slate-100 p-1 text-sm">
-            <button onClick={() => setType("text")} className={`flex-1 rounded-md px-3 py-1.5 ${type === "text" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>文字水印</button>
-            <button onClick={() => setType("image")} className={`flex-1 rounded-md px-3 py-1.5 ${type === "image" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>图片水印</button>
+            <button onClick={() => setType("text")} className={`flex-1 rounded-md px-3 py-1.5 ${type === "text" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>{t("pdf_watermark.text_mode")}</button>
+            <button onClick={() => setType("image")} className={`flex-1 rounded-md px-3 py-1.5 ${type === "image" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>{t("pdf_watermark.image_mode")}</button>
           </div>
 
           {type === "text" ? (
             <>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">水印文字</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">{t("pdf_watermark.text_label")}</label>
                 <input type="text" value={text} onChange={(e) => setText(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="例如：机密文件" />
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder={t("pdf_watermark.text_placeholder")} />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">字号：{fontSize}px</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">{t("pdf_watermark.font_size", { n: fontSize })}</label>
                 <input type="range" min={12} max={120} value={fontSize} onChange={(e) => setFontSize(+e.target.value)} className="w-full" />
               </div>
               <div className="flex items-center gap-2">
-                <label className="mb-1 block text-xs font-medium text-slate-600 w-14">颜色</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600 w-14">{t("pdf_watermark.color")}</label>
                 <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-8 w-12 rounded border border-slate-300" />
                 <span className="text-xs text-slate-500">{color}</span>
               </div>
@@ -251,36 +252,36 @@ export default function PdfWatermarkPage() {
           ) : (
             <>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">水印图片（PNG/JPG）</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">{t("pdf_watermark.image_label")}</label>
                 <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-center hover:border-primary-400">
                   <input type="file" accept="image/png,image/jpeg" className="hidden"
                     onChange={(e) => handleImgFile(e.target.files?.[0] ?? null)} />
                   {imgFile ? (
                     <>
                       <div className="mb-2 text-xs text-slate-500 truncate w-full">{imgFile.name}</div>
-                      <div className="text-[11px] text-primary-600">点击更换</div>
+                      <div className="text-[11px] text-primary-600">{t("pdf_watermark.change")}</div>
                     </>
                   ) : (
                     <>
                       <div className="mb-1 text-slate-500">📷</div>
-                      <div className="text-xs text-slate-500">点击上传水印图</div>
+                      <div className="text-xs text-slate-500">{t("pdf_watermark.upload_img")}</div>
                     </>
                   )}
                 </label>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">缩放：{imgScale}%</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">{t("pdf_watermark.scale", { n: imgScale })}</label>
                 <input type="range" min={10} max={200} value={imgScale} onChange={(e) => setImgScale(+e.target.value)} className="w-full" />
               </div>
             </>
           )}
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">不透明度：{opacity}%</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">{t("pdf_watermark.opacity", { n: opacity })}</label>
             <input type="range" min={5} max={100} value={opacity} onChange={(e) => setOpacity(+e.target.value)} className="w-full" />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">旋转角度：{rotation}°</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">{t("pdf_watermark.rotation", { n: rotation })}</label>
             <input type="range" min={-90} max={90} value={rotation} onChange={(e) => setRotation(+e.target.value)} className="w-full" />
           </div>
 
@@ -288,17 +289,17 @@ export default function PdfWatermarkPage() {
 
           <button onClick={handleApply}
             className="w-full rounded-lg bg-primary-600 py-2.5 text-sm font-semibold text-white hover:bg-primary-700">
-            ✓ 应用水印
+            {t("pdf_watermark.apply")}
           </button>
-          <button onClick={handleNew} className="w-full text-xs text-slate-400 hover:text-slate-600">处理其他文件</button>
+          <button onClick={handleNew} className="w-full text-xs text-slate-400 hover:text-slate-600">{t("common.process_another")}</button>
         </div>
 
         {/* Preview */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="mb-3 text-sm font-medium text-slate-600">预览效果</h3>
+          <h3 className="mb-3 text-sm font-medium text-slate-600">{t("pdf_watermark.preview")}</h3>
           <div className="mx-auto flex h-64 w-full items-center justify-center overflow-hidden rounded-lg bg-slate-100">
             <div className="relative" style={{ width: 200, height: 280, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <div className="p-2 text-[8px] text-slate-300">PDF 页面占位</div>
+              <div className="p-2 text-[8px] text-slate-300">{t("pdf_watermark.page_placeholder")}</div>
               <div
                 className="absolute inset-0 flex items-center justify-center pointer-events-none"
                 style={{
@@ -312,16 +313,16 @@ export default function PdfWatermarkPage() {
                 }}
               >
                 {type === "text" ? (
-                  text || "水印文字"
+                  text || t("pdf_watermark.text_label")
                 ) : imgFile ? (
                   <img src={URL.createObjectURL(imgFile)} style={{ maxWidth: "80%", opacity: 0.8 }} alt="" />
                 ) : (
-                  <span className="text-slate-400 text-xs">图片预览</span>
+                  <span className="text-slate-400 text-xs">{t("pdf_watermark.image_preview")}</span>
                 )}
               </div>
             </div>
           </div>
-          <p className="mt-3 text-center text-[11px] text-slate-400">⚠️ 仅为近似效果预览，实际以生成 PDF 为准</p>
+          <p className="mt-3 text-center text-[11px] text-slate-400">{t("pdf_watermark.approx")}</p>
         </div>
       </div>
       {guard.level && (

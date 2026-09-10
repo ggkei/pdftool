@@ -4,54 +4,55 @@ import { useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 type CategoryKey = "length" | "weight" | "area" | "temp" | "volume" | "time";
 
 const CATEGORIES: { key: CategoryKey; label: string }[] = [
-  { key: "length", label: "长度" },
-  { key: "weight", label: "重量" },
-  { key: "area", label: "面积" },
-  { key: "temp", label: "温度" },
-  { key: "volume", label: "体积" },
-  { key: "time", label: "时间" },
+  { key: "length", label: t("util_unit_convert.cat_length") },
+  { key: "weight", label: t("util_unit_convert.cat_weight") },
+  { key: "area", label: t("util_unit_convert.cat_area") },
+  { key: "temp", label: t("util_unit_convert.cat_temp") },
+  { key: "volume", label: t("util_unit_convert.cat_volume") },
+  { key: "time", label: t("util_unit_convert.cat_time") },
 ];
 
 const UNITS: Record<CategoryKey, { unit: string; label: string }[]> = {
   length: [
-    { unit: "m", label: "米 (m)" },
-    { unit: "km", label: "千米 (km)" },
-    { unit: "cm", label: "厘米 (cm)" },
-    { unit: "mm", label: "毫米 (mm)" },
-    { unit: "in", label: "英寸 (in)" },
-    { unit: "ft", label: "英尺 (ft)" },
+    { unit: "m", label: t("util_unit_convert.unit_m") },
+    { unit: "km", label: t("util_unit_convert.unit_km") },
+    { unit: "cm", label: t("util_unit_convert.unit_cm") },
+    { unit: "mm", label: t("util_unit_convert.unit_mm") },
+    { unit: "in", label: t("util_unit_convert.unit_in") },
+    { unit: "ft", label: t("util_unit_convert.unit_ft") },
   ],
   weight: [
-    { unit: "kg", label: "千克 (kg)" },
-    { unit: "g", label: "克 (g)" },
-    { unit: "lb", label: "磅 (lb)" },
-    { unit: "oz", label: "盎司 (oz)" },
+    { unit: "kg", label: t("util_unit_convert.unit_kg") },
+    { unit: "g", label: t("util_unit_convert.unit_g") },
+    { unit: "lb", label: t("util_unit_convert.unit_lb") },
+    { unit: "oz", label: t("util_unit_convert.unit_oz") },
   ],
   area: [
-    { unit: "m2", label: "平方米 (m²)" },
-    { unit: "km2", label: "平方千米 (km²)" },
-    { unit: "ha", label: "公顷 (ha)" },
-    { unit: "acre", label: "英亩 (acre)" },
+    { unit: "m2", label: t("util_unit_convert.unit_m2") },
+    { unit: "km2", label: t("util_unit_convert.unit_km2") },
+    { unit: "ha", label: t("util_unit_convert.unit_ha") },
+    { unit: "acre", label: t("util_unit_convert.unit_acre") },
   ],
   temp: [
-    { unit: "C", label: "摄氏度 (°C)" },
-    { unit: "F", label: "华氏度 (°F)" },
-    { unit: "K", label: "开尔文 (K)" },
+    { unit: "C", label: t("util_unit_convert.unit_celsius") },
+    { unit: "F", label: t("util_unit_convert.unit_fahr") },
+    { unit: "K", label: t("util_unit_convert.unit_kelvin") },
   ],
   volume: [
-    { unit: "L", label: "升 (L)" },
-    { unit: "mL", label: "毫升 (mL)" },
-    { unit: "gal", label: "加仑 (gal)" },
+    { unit: "L", label: t("util_unit_convert.unit_liter") },
+    { unit: "mL", label: t("util_unit_convert.unit_ml") },
+    { unit: "gal", label: t("util_unit_convert.unit_gal") },
   ],
   time: [
-    { unit: "s", label: "秒 (s)" },
-    { unit: "min", label: "分 (min)" },
-    { unit: "hr", label: "小时 (hr)" },
-    { unit: "day", label: "天 (day)" },
+    { unit: "s", label: t("util_unit_convert.unit_s") },
+    { unit: "min", label: t("util_unit_convert.unit_min") },
+    { unit: "hr", label: t("util_unit_convert.unit_hr") },
+    { unit: "day", label: t("util_unit_convert.unit_day") },
   ],
 };
 
@@ -113,7 +114,7 @@ export default function UtilUnitConvertPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <ToolHeader title="单位换算器" description="长度、重量、面积、温度、体积、时间的一键换算" />
+      <ToolHeader title={t("util_unit_convert.title")} description={t("util_unit_convert.desc")} />
 
       <div className="rounded-2xl bg-white/60 backdrop-blur shadow-soft border border-slate-200/70 p-6">
         <div className="flex flex-wrap gap-2">
@@ -134,14 +135,14 @@ export default function UtilUnitConvertPage() {
 
         <div className="mt-6 grid md:grid-cols-[1fr_auto_1fr] gap-4 items-end">
           <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-500">从</label>
+            <label className="mb-1 block text-xs font-medium text-zinc-500">{t("util_unit_convert.label_from")}</label>
             <div className="flex gap-2">
               <input
                 type="number"
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-mono text-zinc-900 shadow-inner focus:border-primary-400 focus:outline-none focus:ring-4 focus:ring-primary-500/10"
-                placeholder="输入数值"
+                placeholder={t("util_unit_convert.placeholder_input")}
               />
               <select
                 value={inputUnit}
@@ -160,20 +161,20 @@ export default function UtilUnitConvertPage() {
           <button
             onClick={swap}
             className="h-10 w-10 self-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-soft transition hover:border-primary-400 hover:text-primary-600 hover:shadow-card active:scale-95"
-            title="交换"
+            title={t("util_unit_convert.swap")}
           >
             ⇅
           </button>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-500">到</label>
+            <label className="mb-1 block text-xs font-medium text-zinc-500">{t("util_unit_convert.label_to")}</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={result}
                 readOnly
                 className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-mono text-primary-700 font-semibold shadow-inner"
-                placeholder="结果"
+                placeholder={t("util_unit_convert.placeholder_result")}
               />
               <select
                 value={outputUnit}

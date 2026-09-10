@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/i18n/dictionary";
+
 import { useEffect, useMemo, useState } from "react";
 import { ToolHeader } from "@/components/ToolHeader";
 import { ToolUsage } from "@/components/ToolUsage";
@@ -12,16 +14,16 @@ interface Currency {
 }
 
 const CURRENCIES: Currency[] = [
-  { code: "CNY", name: "人民币", flag: "🇨🇳" },
-  { code: "USD", name: "美元", flag: "🇺🇸" },
-  { code: "EUR", name: "欧元", flag: "🇪🇺" },
-  { code: "JPY", name: "日元", flag: "🇯🇵" },
-  { code: "GBP", name: "英镑", flag: "🇬🇧" },
-  { code: "HKD", name: "港币", flag: "🇭🇰" },
-  { code: "AUD", name: "澳元", flag: "🇦🇺" },
-  { code: "CAD", name: "加元", flag: "🇨🇦" },
-  { code: "KRW", name: "韩元", flag: "🇰🇷" },
-  { code: "SGD", name: "新加坡元", flag: "🇸🇬" },
+  { code: "CNY", name: t("util_currency.cur_CNY"), flag: "🇨🇳" },
+  { code: "USD", name: t("util_currency.cur_USD"), flag: "🇺🇸" },
+  { code: "EUR", name: t("util_currency.cur_EUR"), flag: "🇪🇺" },
+  { code: "JPY", name: t("util_currency.cur_JPY"), flag: "🇯🇵" },
+  { code: "GBP", name: t("util_currency.cur_GBP"), flag: "🇬🇧" },
+  { code: "HKD", name: t("util_currency.cur_HKD"), flag: "🇭🇰" },
+  { code: "AUD", name: t("util_currency.cur_AUD"), flag: "🇦🇺" },
+  { code: "CAD", name: t("util_currency.cur_CAD"), flag: "🇨🇦" },
+  { code: "KRW", name: t("util_currency.cur_KRW"), flag: "🇰🇷" },
+  { code: "SGD", name: t("util_currency.cur_SGD"), flag: "🇸🇬" },
 ];
 
 const FALLBACK_RATES_USD: Record<string, number> = {
@@ -113,20 +115,20 @@ export default function Page() {
   };
 
   const sourceLabel = data?.fallback
-    ? "静态参考汇率"
+    ? t("util_currency.static_rates")
     : data?.stale
-    ? "缓存汇率（API 不可用）"
+    ? t("util_currency.cached_unavailable")
     : data?.cached
-    ? "缓存汇率"
-    : "实时汇率";
+    ? t("util_currency.cached_rates")
+    : t("util_currency.live_rates");
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <ToolHeader title="货币转换器" description="实时汇率换算，数据每分钟更新" />
+      <ToolHeader title={t("util_currency.title")} description={t("util_currency.desc")} />
 
       <section className="card p-6 space-y-5 animate-slide-up">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-zinc-700">金额</label>
+          <label className="mb-1.5 block text-sm font-medium text-zinc-700">{t("util_currency.label_amount")}</label>
           <input
             type="number"
             min={0}
@@ -139,7 +141,7 @@ export default function Page() {
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-3">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700">源货币</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-700">{t("util_currency.label_from")}</label>
             <select value={from} onChange={(e) => setFrom(e.target.value)} className="input-base">
               {CURRENCIES.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -152,7 +154,7 @@ export default function Page() {
           <button
             onClick={handleSwap}
             className="mb-0.5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary-600 text-white shadow-soft hover:bg-primary-700 active:scale-95 transition-transform"
-            title="交换货币"
+            title={t("util_currency.swap_currency")}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -160,7 +162,7 @@ export default function Page() {
           </button>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700">目标货币</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-700">{t("util_currency.label_to")}</label>
             <select value={to} onChange={(e) => setTo(e.target.value)} className="input-base">
               {CURRENCIES.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -174,14 +176,14 @@ export default function Page() {
 
       {loading && (
         <section className="mt-6 card p-10 text-center text-zinc-400 animate-pulse">
-          正在获取最新汇率...
+          {t("util_currency.正在获取最新汇率")}
         </section>
       )}
 
       {!loading && result && (
         <section className="mt-6 card p-6 animate-slide-up">
           <div className="rounded-2xl bg-gradient-to-br from-primary-50 to-purple-50 p-6 text-center">
-            <div className="text-xs text-zinc-500 mb-2">转换结果</div>
+            <div className="text-xs text-zinc-500 mb-2">{t("util_currency.result_title")}</div>
             <div className="font-display text-3xl sm:text-4xl font-bold text-primary-700 break-all">
               {result.converted.toLocaleString(undefined, { maximumFractionDigits: 4 })}{" "}
               {result.toCur.code}
@@ -226,7 +228,7 @@ export default function Page() {
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              刷新
+              {t("util_common.刷新")}
             </button>
           </div>
         </section>
@@ -235,7 +237,7 @@ export default function Page() {
       {!loading && data && (
         <section className="mt-6 card p-5">
           <h3 className="mb-3 text-sm font-semibold text-zinc-800">
-            常见汇率表（以 1 USD 为基准）
+            {t("util_currency.常见汇率表以1USD为基准")}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
             {CURRENCIES.filter((c) => c.code !== "USD").map((c) => {
@@ -257,7 +259,7 @@ export default function Page() {
       )}
 
       <p className="mt-5 text-center text-xs text-zinc-400">
-        数据来源：Frankfurter（欧洲央行），仅供参考，实际交易以银行柜台价格为准
+        {t("util_currency.数据来源Frankfurter欧洲央行仅")}
       </p>
       <ToolUsage tool={getToolById("currency")!} />
     </main>

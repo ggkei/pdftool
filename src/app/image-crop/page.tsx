@@ -19,7 +19,7 @@ interface CropRect {
   h: number;
 }
 
-/* 手柄尺寸（显示像素） */
+/* Handle size (in display pixels) */
 const HANDLE_SIZE = 12;
 const HANDLE_HIT = 16;
 
@@ -44,7 +44,7 @@ export default function ImageCropPage() {
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  /* ---------- 文件处理 ---------- */
+  /* ---------- File handling ---------- */
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) {
       setError(t("common.error_image_only"));
@@ -58,7 +58,7 @@ export default function ImageCropPage() {
     const img = new Image();
     img.onload = () => {
       setImgSize({ w: img.naturalWidth, h: img.naturalHeight });
-      /* 默认全图选中 */
+      /* Select the full image by default */
       setCrop({ x: 0, y: 0, w: img.naturalWidth, h: img.naturalHeight });
       setStep("edit");
     };
@@ -88,7 +88,7 @@ export default function ImageCropPage() {
     img.src = previewUrl;
   }, [originalFile, crop, previewUrl]);
 
-  /* 二次裁剪：将裁剪结果作为新原图继续裁剪 */
+  /* Re-crop: use the crop result as the new source image */
   const continueCrop = useCallback(() => {
     if (!resultUrl || !originalFile) return;
     const newFile = new File(
@@ -96,7 +96,7 @@ export default function ImageCropPage() {
       `${originalFile.name.replace(/\.[^.]+$/, "")}_cropped.${originalFile.name.split(".").pop()}`,
       { type: originalFile.type }
     );
-    /* 用 resultUrl 作为新的 previewUrl */
+    /* Use resultUrl as the new previewUrl */
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(resultUrl);
     setResultUrl("");
@@ -141,13 +141,13 @@ export default function ImageCropPage() {
     }
   };
 
-  /* ---------- 坐标转换：基于 imgRef 实际渲染尺寸 ---------- */
+  /* ---------- Coordinate conversion: based on imgRef rendered size ---------- */
   const getImgRect = () => {
     if (!imgRef.current) return { left: 0, top: 0, width: 0, height: 0 };
     return imgRef.current.getBoundingClientRect();
   };
 
-  /* 鼠标像素坐标 → 图片原始像素坐标 */
+  /* Mouse pixel coords -> image original pixel coords */
   const mouseToImgPx = (clientX: number, clientY: number): { x: number; y: number } => {
     const rect = getImgRect();
     if (!rect.width || !rect.height || !imgSize.w || !imgSize.h) return { x: 0, y: 0 };
@@ -159,7 +159,7 @@ export default function ImageCropPage() {
     };
   };
 
-  /* 图片原始像素坐标 → CSS 像素（用于渲染选区/手柄） */
+  /* Image original pixel coords -> CSS pixels (for rendering selection/handles) */
   const imgPxToCss = (px: number, axis: "x" | "y") => {
     const rect = getImgRect();
     if (!rect.width || !rect.height || !imgSize.w || !imgSize.h) return 0;
@@ -167,7 +167,7 @@ export default function ImageCropPage() {
     return px * ratio;
   };
 
-  /* ---------- 工具：判断点击位置 ---------- */
+  /* ---------- Utility: detect click position ---------- */
   const getResizeHandle = (
     clientX: number,
     clientY: number,
@@ -208,7 +208,7 @@ export default function ImageCropPage() {
     return clientX >= hx && clientX <= hx + hw && clientY >= hy && clientY <= hy + hh;
   };
 
-  /* ---------- 约束选区在图片内（关键：选区必须完全在图片内） ---------- */
+  /* ---------- Clamp selection inside image (key: selection must stay fully inside) ---------- */
   const clampCrop = (c: CropRect): CropRect => {
     let { x, y, w, h } = c;
     x = Math.max(0, Math.min(x, imgSize.w - 1));
@@ -218,7 +218,7 @@ export default function ImageCropPage() {
     return { x, y, w, h };
   };
 
-  /* 应用宽高比 */
+  /* Apply aspect ratio */
   const applyAspectRatio = (w: number, h: number, ratio: number): [number, number] => {
     if (ratio <= 0) return [w, h];
     const currentRatio = w / h;
@@ -229,12 +229,12 @@ export default function ImageCropPage() {
     }
   };
 
-  /* ---------- 鼠标事件 ---------- */
+  /* ---------- Mouse events ---------- */
   const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imgSize.w || !imgSize.h) return;
     const { x: mx, y: my } = mouseToImgPx(e.clientX, e.clientY);
 
-    /* 优先检测手柄 */
+    /* Detect handles first */
     const handle = getResizeHandle(e.clientX, e.clientY, crop);
     if (handle) {
       setDragMode("resize");
@@ -244,7 +244,7 @@ export default function ImageCropPage() {
       return;
     }
 
-    /* 检测是否在选区内 → 移动 */
+    /* Inside selection -> move */
     if (isInsideCrop(e.clientX, e.clientY, crop)) {
       setDragMode("move");
       dragStartRef.current = { x: mx, y: my };
@@ -252,7 +252,7 @@ export default function ImageCropPage() {
       return;
     }
 
-    /* 否则创建新选区 */
+    /* Otherwise create a new selection */
     setDragMode("create");
     dragStartRef.current = { x: mx, y: my };
     setCrop({ x: mx, y: my, w: 1, h: 1 });
@@ -273,7 +273,7 @@ export default function ImageCropPage() {
       let w = Math.abs(mx - startX);
       let h = Math.abs(my - startY);
 
-      /* 限制在图片边界 */
+      /* Clamp to image bounds */
       x = Math.max(0, Math.min(x, imgSize.w));
       y = Math.max(0, Math.min(y, imgSize.h));
       w = Math.min(w, imgSize.w - x);
@@ -345,7 +345,7 @@ export default function ImageCropPage() {
     cropOnStartRef.current = null;
   };
 
-  /* ---------- 选区样式 ---------- */
+  /* ---------- Selection styles ---------- */
   const cropStyle = () => {
     if (!imgSize.w || !imgSize.h) return {};
     return {
@@ -356,7 +356,7 @@ export default function ImageCropPage() {
     };
   };
 
-  /* 手柄位置 */
+  /* Handle positions */
   const handlePositions: { key: ResizeHandle; style: React.CSSProperties }[] =
     imgSize.w && imgSize.h
       ? [
@@ -455,24 +455,24 @@ export default function ImageCropPage() {
 
               {step === "edit" && crop.w > 0 && (
                 <>
-                  {/* 暗色遮罩（图片外部） */}
+                  {/* Dark overlay (outside the image) */}
                   <div className="absolute inset-0 pointer-events-none">
-                    {/* 上 */}
+                    {/* Top */}
                     <div className="absolute bg-black/40" style={{ top: 0, left: 0, right: 0, height: imgPxToCss(crop.y, "y") }} />
-                    {/* 下 */}
+                    {/* Bottom */}
                     <div className="absolute bg-black/40" style={{ bottom: 0, left: 0, right: 0, height: `calc(100% - ${imgPxToCss(crop.y + crop.h, "y")}px)` }} />
-                    {/* 左 */}
+                    {/* Left */}
                     <div className="absolute bg-black/40" style={{ top: imgPxToCss(crop.y, "y"), left: 0, width: imgPxToCss(crop.x, "x"), height: imgPxToCss(crop.h, "y") }} />
-                    {/* 右 */}
+                    {/* Right */}
                     <div className="absolute bg-black/40" style={{ top: imgPxToCss(crop.y, "y"), right: 0, width: `calc(100% - ${imgPxToCss(crop.x + crop.w, "x")}px)`, height: imgPxToCss(crop.h, "y") }} />
                   </div>
 
-                  {/* 选区边框 */}
+                  {/* Selection border */}
                   <div
                     className="absolute border-2 border-brand-400 pointer-events-none"
                     style={cropStyle()}
                   >
-                    {/* 网格线 */}
+                    {/* Grid lines */}
                     <div className="absolute inset-0 pointer-events-none">
                       <div className="absolute top-1/3 left-0 right-0 h-px bg-white/50" />
                       <div className="absolute top-2/3 left-0 right-0 h-px bg-white/50" />
@@ -481,7 +481,7 @@ export default function ImageCropPage() {
                     </div>
                   </div>
 
-                  {/* 调整手柄 */}
+                  {/* Resize handles */}
                   {handlePositions.map((h) => (
                     <div
                       key={h.key}

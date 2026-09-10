@@ -6,6 +6,7 @@ import { useFileGuard } from "@/hooks/useFileGuard";
 import { FileGuardModal } from "@/components/FileGuardModal";
 import { ToolUsage } from "@/components/ToolUsage";
 import { getToolById } from "@/lib/tools";
+import { t } from "@/i18n/dictionary";
 
 type Step = "upload" | "processing" | "done";
 
@@ -43,7 +44,7 @@ export default function PdfCompressPage() {
       return;
     }
     setError("");
-    if (!f.name.toLowerCase().endsWith(".pdf")) { setError("请上传 PDF 文件"); return; }
+    if (!f.name.toLowerCase().endsWith(".pdf")) { setError(t("common.upload_pdf")); return; }
     setFileName(f.name);
     setOriginalSize(f.size);
     setInputBytes(new Uint8Array(await f.arrayBuffer()));
@@ -70,7 +71,7 @@ export default function PdfCompressPage() {
       setResult({ pageCount: r.pageCount, savedBytes: r.savedBytes, outputBytes: r.outputBytes });
       setStep("done");
     } catch (err: any) {
-      setError(err?.message || "压缩失败");
+      setError(err?.message || t("pdf_compress.error_failed"));
       setStep("upload");
     } finally {
       setRunning(false);
@@ -109,10 +110,10 @@ export default function PdfCompressPage() {
   if (step === "processing") {
     return (
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <ToolHeader title="PDF 压缩" description={fileName} />
+        <ToolHeader title={t("pdf_compress.title")} description={fileName} />
         <div className="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"></div>
-          <p className="text-slate-600">正在分析和压缩图片资源...</p>
+          <p className="text-slate-600">{t("pdf_compress.processing")}</p>
         </div>
                 <ToolUsage tool={getToolById("compress")!} />
 </main>
@@ -123,7 +124,7 @@ export default function PdfCompressPage() {
     const ratio = originalSize > 0 ? ((1 - result.outputBytes.length / originalSize) * 100) : 0;
     return (
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <ToolHeader title="PDF 压缩" description={fileName} />
+        <ToolHeader title={t("pdf_compress.title")} description={fileName} />
         <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
           <div className="mb-6 text-center">
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -131,19 +132,19 @@ export default function PdfCompressPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-slate-800">压缩完成！</h3>
+            <h3 className="text-xl font-semibold text-slate-800">{t("pdf_compress.done")}</h3>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div className="rounded-lg bg-slate-50 p-4 text-center">
-              <div className="text-xs text-slate-500">原始大小</div>
+              <div className="text-xs text-slate-500">{t("pdf_compress.original_size")}</div>
               <div className="mt-1 text-xl font-semibold text-slate-700">{formatSize(originalSize)}</div>
             </div>
             <div className="rounded-lg bg-primary-50 p-4 text-center">
-              <div className="text-xs text-primary-600">压缩后</div>
+              <div className="text-xs text-primary-600">{t("pdf_compress.after")}</div>
               <div className="mt-1 text-xl font-semibold text-primary-700">{formatSize(result.outputBytes.length)}</div>
             </div>
             <div className="rounded-lg bg-green-50 p-4 text-center">
-              <div className="text-xs text-green-600">节省</div>
+              <div className="text-xs text-green-600">{t("pdf_compress.saved")}</div>
               <div className="mt-1 text-xl font-semibold text-green-700">
                 {result.savedBytes > 0 ? `-${formatSize(result.savedBytes)}` : "+" + formatSize(-result.savedBytes)}
               </div>
@@ -151,17 +152,17 @@ export default function PdfCompressPage() {
             </div>
           </div>
           <p className="mt-4 text-center text-sm text-slate-500">
-            共 {result.pageCount} 页
+            {t("common.count_pages", { count: result.pageCount })}
           </p>
           <div className="mt-6 flex justify-center gap-3">
             <button onClick={handleDownload} className="rounded-lg bg-primary-600 px-6 py-2 text-sm font-semibold text-white hover:bg-primary-700">
-              💾 下载压缩后的 PDF
+              {t("pdf_compress.download_btn")}
             </button>
             <button onClick={handleReset} className="rounded-lg border border-slate-300 bg-white px-6 py-2 text-sm text-slate-600 hover:bg-slate-50">
-              继续调参
+              {t("pdf_compress.adjust")}
             </button>
             <button onClick={handleNew} className="rounded-lg border border-slate-300 bg-white px-6 py-2 text-sm text-slate-600 hover:bg-slate-50">
-              处理其他文件
+              {t("common.process_another")}
             </button>
           </div>
         </div>
@@ -174,7 +175,7 @@ export default function PdfCompressPage() {
     return (
       <>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <ToolHeader title="PDF 压缩" description="智能重编码 PDF 中的图片资源，减小文件体积" />
+        <ToolHeader title={t("pdf_compress.title")} description={t("pdf_compress.desc")} />
         <div onClick={() => inputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -188,8 +189,8 @@ export default function PdfCompressPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           </div>
-          <p className="mb-1 text-lg font-medium text-slate-700">点击上传 PDF，或拖到此处</p>
-          <p className="text-sm text-slate-500">支持 .pdf 格式</p>
+          <p className="mb-1 text-lg font-medium text-slate-700">{t("common.upload_pdf_click_hint")}</p>
+          <p className="text-sm text-slate-500">{t("common.pdf_format_support")}</p>
         </div>
         {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       </main>
@@ -210,7 +211,7 @@ export default function PdfCompressPage() {
   // Config page
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <ToolHeader title="PDF 压缩" description={fileName} />
+      <ToolHeader title={t("pdf_compress.title")} description={fileName} />
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between rounded-lg bg-slate-50 p-3 text-sm">
           <span className="text-slate-600">{fileName}</span>
@@ -218,40 +219,40 @@ export default function PdfCompressPage() {
         </div>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">输出格式</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">{t("pdf_compress.format_label")}</label>
             <div className="flex rounded-lg bg-slate-100 p-1 text-sm">
-              <button onClick={() => setFormat("jpeg")} className={`flex-1 rounded-md px-3 py-1.5 ${format === "jpeg" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>JPEG (更小)</button>
-              <button onClick={() => setFormat("png")} className={`flex-1 rounded-md px-3 py-1.5 ${format === "png" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>PNG (无损)</button>
+              <button onClick={() => setFormat("jpeg")} className={`flex-1 rounded-md px-3 py-1.5 ${format === "jpeg" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>{t("pdf_compress.jpeg_smaller")}</button>
+              <button onClick={() => setFormat("png")} className={`flex-1 rounded-md px-3 py-1.5 ${format === "png" ? "bg-white text-primary-600 shadow-sm font-medium" : "text-slate-500"}`}>{t("pdf_compress.png_lossless")}</button>
             </div>
           </div>
           {format === "jpeg" && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">JPEG 质量：{quality}%</label>
+              <label className="mb-1 block text-xs font-medium text-slate-600">{t("pdf_compress.jpeg_quality", { n: quality })}</label>
               <input type="range" min={10} max={100} value={quality} onChange={(e) => setQuality(+e.target.value)} className="w-full" />
             </div>
           )}
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">最大页面宽度</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">{t("pdf_compress.max_width")}</label>
             <select value={maxDimension} onChange={(e) => setMaxDimension(+e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-              <option value={0}>保持原始分辨率</option>
-              <option value={2048}>2048px (高)</option>
-              <option value={1536}>1536px (中)</option>
-              <option value={1024}>1024px (低)</option>
-              <option value={768}>768px (很低)</option>
+              <option value={0}>{t("pdf_compress.keep_res")}</option>
+              <option value={2048}>{t("pdf_compress.res_2048")}</option>
+              <option value={1536}>{t("pdf_compress.res_1536")}</option>
+              <option value={1024}>{t("pdf_compress.res_1024")}</option>
+              <option value={768}>{t("pdf_compress.res_768")}</option>
             </select>
           </div>
           <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
-            💡 压缩原理：将 PDF 每页渲染为图片后重新打包为 PDF。这种通用方法适用于任何 PDF，但会降低文本可选中能力。
+            {t("pdf_compress.principle")}
           </div>
           {error && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}</div>}
           <div className="flex gap-3">
             <button onClick={handleCompress} disabled={running}
               className="flex-1 rounded-lg bg-primary-600 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:bg-slate-300">
-              {running ? "压缩中..." : "🔽 开始压缩"}
+              {running ? t("pdf_compress.compressing") : t("pdf_compress.start")}
             </button>
             <button onClick={handleNew} className="rounded-lg border border-slate-300 px-4 text-xs text-slate-500 hover:bg-slate-50">
-              换文件
+              {t("common.switch_file")}
             </button>
           </div>
         </div>
