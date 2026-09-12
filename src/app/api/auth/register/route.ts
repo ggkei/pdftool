@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     }, { status: 409 });
   }
 
-  const codeResult = await verifyLoginCode(email, code, "register", "email");
+  const codeResult = await verifyLoginCode(email, code, "register");
   if (!codeResult.ok) {
     return NextResponse.json({ ok: false, reason: codeResult.reason || "验证码错误" }, { status: 400 });
   }

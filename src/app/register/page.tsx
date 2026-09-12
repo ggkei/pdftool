@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/components/UserContext";
+import { t } from "@/i18n/dictionary";
 
 function PasswordInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   const [show, setShow] = useState(false);
@@ -52,14 +53,14 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (countdown <= 0) return;
-    const t = setTimeout(() => setCountdown(countdown - 1), 1000);
-    return () => clearTimeout(t);
+    const tm = setTimeout(() => setCountdown(countdown - 1), 1000);
+    return () => clearTimeout(tm);
   }, [countdown]);
 
   const sendCode = async () => {
     setErr("");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErr("邮箱格式不正确");
+      setErr(t("auth.error_invalid_email"));
       return;
     }
     setLoading(true);
@@ -75,10 +76,10 @@ export default function RegisterPage() {
         setCountdown(60);
         setDevCode(data.devCode);
       } else {
-        setErr(data.reason || "发送失败");
+        setErr(data.reason || t("auth.send_failed"));
       }
     } catch (e: any) {
-      setErr(e?.message || "网络错误");
+      setErr(e?.message || t("auth.network_error"));
     } finally {
       setLoading(false);
     }
@@ -87,15 +88,15 @@ export default function RegisterPage() {
   const register = async () => {
     setErr("");
     if (!email || !code || !password) {
-      setErr("请填写所有字段");
+      setErr(t("forgot.fill_all_fields"));
       return;
     }
     if (password.length < 6) {
-      setErr("密码至少 6 位");
+      setErr(t("auth.error_password_short"));
       return;
     }
     if (password !== confirmPassword) {
-      setErr("两次输入的密码不一致");
+      setErr(t("forgot.password_mismatch"));
       return;
     }
     setLoading(true);
@@ -110,10 +111,10 @@ export default function RegisterPage() {
         await refresh();
         router.push("/");
       } else {
-        setErr(data.reason || "注册失败");
+        setErr(data.reason || t("auth.register_failed"));
       }
     } catch (e: any) {
-      setErr(e?.message || "网络错误");
+      setErr(e?.message || t("auth.network_error"));
     } finally {
       setLoading(false);
     }
@@ -132,15 +133,15 @@ export default function RegisterPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-semibold text-zinc-900">注册账号</h3>
-                <p className="text-xs text-zinc-500">使用邮箱注册，设置密码登录</p>
+                <h3 className="text-base font-semibold text-zinc-900">{t("auth.register_title")}</h3>
+                <p className="text-xs text-zinc-500">{t("auth.register_subtitle")}</p>
               </div>
             </div>
           </div>
 
           <div className="px-6 pb-6 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-zinc-600">邮箱地址</label>
+              <label className="mb-1.5 block text-xs font-medium text-zinc-600">{t("auth.email_label")}</label>
               <input
                 type="email"
                 value={email}
@@ -152,12 +153,12 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-zinc-600">邮箱验证码</label>
+              <label className="mb-1.5 block text-xs font-medium text-zinc-600">{t("auth.code_label")}</label>
               <div className="flex gap-2">
                 <input
                   value={code}
                   onChange={(e) => { setCode(e.target.value.toUpperCase()); setErr(""); }}
-                  placeholder="6 位验证码"
+                  placeholder={t("auth.code_placeholder")}
                   maxLength={6}
                   className="input-base flex-1 text-center text-lg tracking-[0.3em] font-mono uppercase"
                 />
@@ -166,24 +167,24 @@ export default function RegisterPage() {
                   disabled={countdown > 0 || loading}
                   className="btn-primary whitespace-nowrap"
                 >
-                  {countdown > 0 ? `${countdown}s` : "发送验证码"}
+                  {countdown > 0 ? t("auth.resend_countdown", { n: countdown }) : t("auth.send_code")}
                 </button>
               </div>
               {devCode && (
                 <p className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-[11px] text-amber-700">
-                  验证码：<span className="font-mono font-bold">{devCode}</span>（开发模式）
+                  {t("auth.dev_code_prefix")}<span className="font-mono font-bold">{devCode}</span>{t("auth.dev_mode_suffix")}
                 </p>
               )}
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-zinc-600">设置密码</label>
-              <PasswordInput value={password} onChange={(v) => { setPassword(v); setErr(""); }} placeholder="至少 6 位" />
+              <label className="mb-1.5 block text-xs font-medium text-zinc-600">{t("auth.set_password")}</label>
+              <PasswordInput value={password} onChange={(v) => { setPassword(v); setErr(""); }} placeholder={t("auth.password_placeholder_min")} />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-zinc-600">确认密码</label>
-              <PasswordInput value={confirmPassword} onChange={(v) => { setConfirmPassword(v); setErr(""); }} placeholder="再次输入密码" />
+              <label className="mb-1.5 block text-xs font-medium text-zinc-600">{t("auth.confirm_password")}</label>
+              <PasswordInput value={confirmPassword} onChange={(v) => { setConfirmPassword(v); setErr(""); }} placeholder={t("auth.confirm_password_placeholder")} />
             </div>
 
             {err && (
@@ -201,13 +202,13 @@ export default function RegisterPage() {
               disabled={loading}
               className="btn w-full btn-primary"
             >
-              {loading ? "注册中..." : "注册并登录"}
+              {loading ? t("auth.registering") : t("auth.register_and_login")}
             </button>
 
             <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-500">已有账号？</span>
+              <span className="text-zinc-500">{t("auth.has_account")}</span>
               <Link href="/" className="text-brand-600 hover:text-brand-700 font-medium">
-                去登录
+                {t("auth.login_now")}
               </Link>
             </div>
           </div>

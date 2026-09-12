@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, reason: "请输入邮箱和验证码" }, { status: 400 });
   }
 
-  const result = await verifyLoginCode(email, code, "login", "email");
+  const result = await verifyLoginCode(email, code, "login");
   if (!result.ok) return NextResponse.json(result, { status: 400 });
 
   const user = await findUserByEmail(email);

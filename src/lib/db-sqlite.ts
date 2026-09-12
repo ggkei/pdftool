@@ -365,17 +365,16 @@ export async function touchUserLogin(userId: number) {
 export async function createLoginCode(
   identifier: string,
   purpose: string,
-  type: "email" | "phone" = "email",
+  _type: "email" | "phone" = "email",
   expiresMinutes = 10
 ): Promise<string> {
   await ensureInit();
   const code = Math.random().toString(36).slice(2, 8).toUpperCase();
   const now = Date.now();
   getDb().prepare(
-    "INSERT INTO login_codes (email, phone, code, purpose, used, created_at, expires_at) VALUES (?, ?, ?, ?, 0, ?, ?)"
+    "INSERT INTO login_codes (email, code, purpose, used, created_at, expires_at) VALUES (?, ?, ?, 0, ?, ?)"
   ).run(
-    type === "email" ? identifier.toLowerCase() : null,
-    type === "phone" ? identifier : null,
+    identifier.toLowerCase(),
     code,
     purpose,
     now,
@@ -385,18 +384,12 @@ export async function createLoginCode(
 }
 
 export async function verifyLoginCode(
-  identifier: string,
+  email: string,
   code: string,
-  purpose: string,
-  type: "email" | "phone" = "email"
+  purpose: string
 ): Promise<{ ok: boolean; reason?: string }> {
   await ensureInit();
-  let row: any;
-  if (type === "phone") {
-    row = getDb().prepare("SELECT * FROM login_codes WHERE phone = ? AND code = ? AND purpose = ? AND used = 0").get(identifier, code.toUpperCase(), purpose);
-  } else {
-    row = getDb().prepare("SELECT * FROM login_codes WHERE email = ? AND code = ? AND purpose = ? AND used = 0").get(identifier.toLowerCase(), code.toUpperCase(), purpose);
-  }
+  const row = getDb().prepare("SELECT * FROM login_codes WHERE email = ? AND code = ? AND purpose = ? AND used = 0").get(email.toLowerCase(), code.toUpperCase(), purpose) as any;
   if (!row) return { ok: false, reason: "验证码不存在" };
   if (row.expires_at < Date.now()) return { ok: false, reason: "验证码已过期" };
   getDb().prepare("UPDATE login_codes SET used = 1 WHERE id = ?").run(row.id);

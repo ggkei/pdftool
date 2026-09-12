@@ -67,7 +67,6 @@ async function initDb() {
       CREATE TABLE IF NOT EXISTS login_codes (
         id SERIAL PRIMARY KEY,
         email TEXT,
-        phone TEXT,
         code TEXT NOT NULL,
         purpose TEXT NOT NULL,
         used BOOLEAN NOT NULL DEFAULT false,
@@ -370,38 +369,29 @@ export async function touchUserLogin(userId: number) {
 export async function createLoginCode(
   identifier: string,
   purpose: string,
-  type: "email" | "phone" = "email",
+  _type: "email" | "phone" = "email",
   expiresMinutes = 10
 ): Promise<string> {
   await ensureInit();
   const code = Math.random().toString(36).slice(2, 8).toUpperCase();
   const now = Date.now();
   await getPool().query(
-    "INSERT INTO login_codes (email, phone, code, purpose, used, created_at, expires_at) VALUES ($1, $2, $3, $4, false, $5, $6)",
-    [type === "email" ? identifier.toLowerCase() : null, type === "phone" ? identifier : null, code, purpose, now, now + expiresMinutes * 60_000]
+    "INSERT INTO login_codes (email, code, purpose, used, created_at, expires_at) VALUES ($1, $2, $3, false, $4, $5)",
+    [identifier.toLowerCase(), code, purpose, now, now + expiresMinutes * 60_000]
   );
   return code;
 }
 
 export async function verifyLoginCode(
-  identifier: string,
+  email: string,
   code: string,
-  purpose: string,
-  type: "email" | "phone" = "email"
+  purpose: string
 ): Promise<{ ok: boolean; reason?: string }> {
   await ensureInit();
-  let res;
-  if (type === "phone") {
-    res = await getPool().query(
-      "SELECT * FROM login_codes WHERE phone = $1 AND code = $2 AND purpose = $3 AND used = false",
-      [identifier, code.toUpperCase(), purpose]
-    );
-  } else {
-    res = await getPool().query(
-      "SELECT * FROM login_codes WHERE email = $1 AND code = $2 AND purpose = $3 AND used = false",
-      [identifier.toLowerCase(), code.toUpperCase(), purpose]
-    );
-  }
+  const res = await getPool().query(
+    "SELECT * FROM login_codes WHERE email = $1 AND code = $2 AND purpose = $3 AND used = false",
+    [email.toLowerCase(), code.toUpperCase(), purpose]
+  );
   if (res.rows.length === 0) return { ok: false, reason: "验证码不存在" };
   const row = res.rows[0];
   if (row.expires_at < Date.now()) return { ok: false, reason: "验证码已过期" };

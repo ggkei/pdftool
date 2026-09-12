@@ -1586,6 +1586,14 @@ export const DICTIONARY: Record<string, DictEntry> = {
   "auth.resend_code": { zh: "重新发送验证码", en: "Resend code" },
   "auth.no_account_short": { zh: "还没有账号？", en: "No account yet?" },
   "auth.register_new": { zh: "注册新账号", en: "Register" },
+  "auth.register_subtitle": { zh: "使用邮箱注册，设置密码登录", en: "Register with email and set your password" },
+  "auth.set_password": { zh: "设置密码", en: "Set Password" },
+  "auth.confirm_password": { zh: "确认密码", en: "Confirm Password" },
+  "auth.confirm_password_placeholder": { zh: "再次输入密码", en: "Re-enter password" },
+  "auth.register_and_login": { zh: "注册并登录", en: "Register & Sign In" },
+  "auth.registering": { zh: "注册中...", en: "Registering..." },
+  "auth.register_failed": { zh: "注册失败", en: "Registration failed" },
+  "auth.password_placeholder_min": { zh: "至少 6 位", en: "At least 6 characters" },
 
   // ===== Forgot Password =====
   "forgot.email_format_error": { zh: "邮箱格式不正确", en: "Invalid email format" },
